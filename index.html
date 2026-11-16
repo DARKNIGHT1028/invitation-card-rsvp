@@ -39,6 +39,34 @@ body.invitation-open main{opacity:1;transform:translateY(0)}
 @media(prefers-reduced-motion:reduce){.intro-screen,main,.envelope-flap,.envelope-letter{transition-duration:.01ms!important}}
 
 @media(min-width:600px){.details{grid-template-columns:1fr 1fr}.details .wide{grid-column:1/-1}}
+
+/* Bottom-up RSVP attendance sheet */
+body.sheet-open{overflow:hidden}
+#rsvpTab{position:fixed;left:0;right:0;bottom:0;z-index:8;display:none;padding:13px 0 calc(15px + env(safe-area-inset-bottom,0px));text-align:center;background:linear-gradient(transparent,#70444de8 58%);color:#fff5ed;cursor:pointer;user-select:none;touch-action:none;font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:700}
+#rsvpTab.visible{display:block}
+#rsvpTab .bar{width:46px;height:5px;border-radius:5px;background:#dfc9a8;margin:0 auto 8px;animation:tabBob 1.4s infinite}
+@keyframes tabBob{50%{transform:translateY(-5px)}}
+#rsvpSheet{position:fixed;inset:0;z-index:12;background:rgba(112,68,77,.28);-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px);padding:max(62px,10vh) 18px calc(22px + env(safe-area-inset-bottom,0px));overflow:auto;transform:translateY(105%);transition:transform .55s cubic-bezier(.2,.8,.2,1)}
+#rsvpSheet.up{transform:translateY(0)}
+.attendance-card{width:min(100%,430px);margin:0 auto;background:linear-gradient(160deg,#8a5660,#70444d);border:1px solid var(--gold);border-radius:28px;padding:20px;color:#fffaf6;box-shadow:0 20px 50px #3a1e2455}
+.attendance-card h2{text-align:center;margin:5px 0 3px;font:600 30px 'Cormorant Garamond',serif;letter-spacing:.14em}
+.attendance-card .script-sub{text-align:center;font:22px 'Parisienne',cursive;color:#dfc9a8;margin-bottom:15px}
+.attendance-inner{background:#fff7f2;border-radius:22px;padding:17px;color:var(--wine)}
+.attendance-inner .field{margin:0 0 15px}
+.attendance-inner .field label{display:block;font-weight:700;margin-bottom:7px;font-size:13px;letter-spacing:.04em}
+.attendance-inner .field input{width:100%;border:1px solid #e1c6bd;border-radius:14px;padding:13px;background:#fff;color:var(--ink);font-size:16px}
+.attendance-inner .choices{display:flex;gap:10px;margin-top:10px}
+.attendance-inner .choices button{flex:1;border:2px solid transparent;border-radius:20px;padding:12px;color:#fff;font-weight:700;font-size:14px;cursor:pointer;opacity:.68}
+.attendance-inner .choices button[data-status="Hadir"]{background:#6f9473}
+.attendance-inner .choices button[data-status="Tidak hadir"]{background:#b5545c}
+.attendance-inner .choices button.selected{opacity:1;border-color:var(--wine);transform:scale(1.025)}
+.attendance-inner .submit{margin-top:14px;background:linear-gradient(135deg,#d7a5a5,#a96f76);border:0;border-radius:26px;padding:14px;width:100%;color:#fff;font-size:15px;letter-spacing:.08em}
+.attendance-inner .ms-signin{width:100%;border-radius:20px;padding:12px}
+.attendance-inner .auth-state{font-size:11px;text-align:center;line-height:1.5;color:#806d69}
+.attendance-inner #message{min-height:22px;text-align:center;font-size:12px;line-height:1.5;color:var(--wine);margin-top:10px}
+#closeRsvp{display:block;margin:14px auto 0;background:none;border:0;color:#fff5ed;font-size:14px;cursor:pointer}
+@media(prefers-reduced-motion:reduce){#rsvpSheet,#rsvpTab .bar{transition-duration:.01ms!important;animation-duration:.01ms!important}}
+
 </style></head>
 <body class="intro-active">
 <section class="intro-screen" id="introScreen" aria-label="Pembukaan kad jemputan">
@@ -64,12 +92,27 @@ body.invitation-open main{opacity:1;transform:translateY(0)}
 <div class="details"><div class="wide"><div class="label">Bertempat di</div><div class="value venue">MÖVENPICK HOTEL AND CONVENTION CENTRE KLIA<br>KOMPLEKS TH SEPANG, JALAN MASJID KLIA,<br>64000 SEPANG, SELANGOR</div></div><div><div class="label">Masa majlis</div><div class="value">12.30 tengah hari – 4.00 petang</div></div><div><div class="label">Tema majlis</div><div class="theme">Kenduri</div></div></div>
 <div class="rule">✧ ❀ ✧</div><p class="closing">Kami menantikan kehadiran anda</p>
 </section>
-<section class="rsvp"><div class="kicker">Pengesahan Kehadiran</div><h2>RSVP</h2><p>Sila isi nama dan pilih status kehadiran anda.</p>
-<button class="ms-signin" id="msSignIn" type="button">Sambung dengan Microsoft</button><div class="auth-state" id="authState">Log masuk Microsoft diperlukan untuk menyimpan RSVP ke OneDrive.</div><form id="rsvp"><div class="field"><label for="guest">Nama</label><input id="guest" name="name" maxlength="80" autocomplete="name" required></div>
-<div class="field"><label>Kehadiran</label><div class="choices"><button type="button" data-status="Hadir">Hadir</button><button type="button" data-status="Tidak hadir">Tidak hadir</button></div></div>
-<input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px"><button class="submit" id="submit" type="submit">Hantar RSVP</button><div id="message" role="status" aria-live="polite"></div></form></section>
+
 <p class="footer">MAJLIS HI-TEA SEJASMIN · KENDURI SERUMPUN KASIH</p>
 </main>
+
+<div id="rsvpTab" role="button" tabindex="0" aria-label="Buka borang RSVP"><div class="bar"></div>▲ LERET KE ATAS UNTUK RSVP</div>
+<section id="rsvpSheet" aria-label="Borang pengesahan kehadiran" aria-hidden="true">
+ <div class="attendance-card">
+  <h2>RSVP</h2><div class="script-sub">Pengesahan Kehadiran</div>
+  <div class="attendance-inner">
+   <button class="ms-signin" id="msSignIn" type="button">Sambung dengan Microsoft</button>
+   <div class="auth-state" id="authState">Log masuk Microsoft diperlukan untuk menyimpan RSVP ke OneDrive.</div>
+   <form id="rsvp">
+    <div class="field"><label for="guest">Nama tetamu</label><input id="guest" name="name" maxlength="80" autocomplete="name" required></div>
+    <div class="field"><label>Kehadiran</label><div class="choices"><button type="button" data-status="Hadir">Hadir</button><button type="button" data-status="Tidak hadir">Tidak hadir</button></div></div>
+    <input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px">
+    <button class="submit" id="submit" type="submit">Hantar RSVP</button><div id="message" role="status" aria-live="polite"></div>
+   </form>
+  </div>
+  <button id="closeRsvp" type="button">Tutup ▼</button>
+ </div>
+</section>
 <script>
 const openInvitationButton=document.getElementById('openInvitation');
 const introScreen=document.getElementById('introScreen');
@@ -80,6 +123,7 @@ openInvitationButton.addEventListener('click',()=>{
     introScreen.classList.add('dismissed');
     document.body.classList.remove('intro-active');
     document.body.classList.add('invitation-open');
+    document.getElementById('rsvpTab').classList.add('visible');
     window.setTimeout(()=>introScreen.remove(),850);
   },1050);
 });
@@ -138,17 +182,29 @@ async function saveRsvpToExcel(name,status){
  }
  await graphRequest(workbookPath+'/tables/'+encodeURIComponent(table.id)+'/rows/add',token,{method:'POST',body:JSON.stringify({values:[[new Date().toISOString(),name,status]]})});
 }
+
+const rsvpTab=document.getElementById('rsvpTab');
+const rsvpSheet=document.getElementById('rsvpSheet');
+function toggleRsvp(open){rsvpSheet.classList.toggle('up',open);rsvpSheet.setAttribute('aria-hidden',String(!open));document.body.classList.toggle('sheet-open',open);}
+rsvpTab.addEventListener('click',()=>toggleRsvp(true));
+rsvpTab.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggleRsvp(true);}});
+document.getElementById('closeRsvp').addEventListener('click',()=>toggleRsvp(false));
+let touchStartY=null;
+rsvpTab.addEventListener('touchstart',e=>touchStartY=e.touches[0].clientY,{passive:true});
+rsvpTab.addEventListener('touchend',e=>{if(touchStartY!==null&&touchStartY-e.changedTouches[0].clientY>25)toggleRsvp(true);touchStartY=null;});
+let sheetTouchY=null;
+rsvpSheet.addEventListener('touchstart',e=>sheetTouchY=e.touches[0].clientY,{passive:true});
+rsvpSheet.addEventListener('touchend',e=>{if(sheetTouchY!==null&&rsvpSheet.scrollTop===0&&e.changedTouches[0].clientY-sheetTouchY>75)toggleRsvp(false);sheetTouchY=null;});
 document.querySelectorAll('[data-status]').forEach(button=>button.addEventListener('click',()=>{attendance=button.dataset.status;document.querySelectorAll('[data-status]').forEach(b=>b.classList.toggle('selected',b===button));}));
 document.getElementById('rsvp').addEventListener('submit',async event=>{
  event.preventDefault();const form=event.currentTarget;const name=form.elements.name.value.trim();const message=document.getElementById('message');const submit=document.getElementById('submit');
  if(!name||!attendance){message.textContent='Sila isi nama dan pilih status kehadiran.';return;}
- if(form.elements.website.value){return;}
+ if(form.elements.website.value)return;
  submit.disabled=true;message.textContent='Menyimpan RSVP ke OneDrive…';
  try{
   await saveRsvpToExcel(name,attendance);
   message.textContent='Terima kasih! RSVP anda telah direkodkan dalam Excel OneDrive.';
   form.reset();attendance='';document.querySelectorAll('[data-status]').forEach(b=>b.classList.remove('selected'));
- }catch(error){
-  message.textContent='Tidak berjaya menyimpan RSVP: '+(error.message||'Sila cuba lagi.');
- }finally{submit.disabled=false;}
+ }catch(error){message.textContent='Tidak berjaya menyimpan RSVP: '+(error.message||'Sila cuba lagi.');}
+ finally{submit.disabled=false;}
 });</script></body></html>

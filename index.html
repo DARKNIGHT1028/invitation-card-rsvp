@@ -246,7 +246,7 @@
     }
 
     const $=id=>document.getElementById(id);
-    const API='PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE';
+    const API='https://script.google.com/macros/s/AKfycbzxyx8CLxRq3GpYeF2e1zIRy0m0oCe_yw7pDMP7s6fwYGrmILcHnpBmMyw9XEdHQKE/exec';
     let sel=null,rows=[],adminStarted=false,timer=null;
     function gid(){try{let g=localStorage.getItem('sj_gid');if(!g){g='g'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);localStorage.setItem('sj_gid',g)}return g}catch(e){return 'g'+Date.now().toString(36)+Math.random().toString(36).slice(2,8)}}
     function call(b){return fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(b)}).then(r=>r.json())}

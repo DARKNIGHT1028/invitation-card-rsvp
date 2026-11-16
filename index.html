@@ -188,7 +188,6 @@ let m0=null;tab.addEventListener('pointerdown',e=>{m0=e.clientY;tab.setPointerCa
 window.addEventListener('pointerup',e=>{if(m0!==null&&m0-e.clientY>30)up(true);m0=null;});
 let s0=null;sheet.addEventListener('touchstart',e=>s0=e.touches[0].clientY,{passive:true});
 sheet.addEventListener('touchend',e=>{if(s0!==null&&sheet.scrollTop<=0&&e.changedTouches[0].clientY-s0>80)up(false);s0=null;});
-let attendance='';
 document.querySelectorAll('[data-status]').forEach(button=>button.addEventListener('click',()=>{attendance=button.dataset.status;document.querySelectorAll('[data-status]').forEach(b=>b.classList.toggle('sel',b===button));}));
 document.getElementById('submit').addEventListener('click',async()=>{
  const name=document.getElementById('guest').value.trim(),message=document.getElementById('message'),submit=document.getElementById('submit');

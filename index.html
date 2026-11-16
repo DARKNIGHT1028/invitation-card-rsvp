@@ -249,7 +249,7 @@
     const API='https://script.google.com/macros/s/AKfycbzxyx8CLxRq3GpYeF2e1zIRy0m0oCe_yw7pDMP7s6fwYGrmILcHnpBmMyw9XEdHQKE/exec';
     let sel=null,rows=[],adminStarted=false,timer=null;
     function gid(){try{let g=localStorage.getItem('sj_gid');if(!g){g='g'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);localStorage.setItem('sj_gid',g)}return g}catch(e){return 'g'+Date.now().toString(36)+Math.random().toString(36).slice(2,8)}}
-    function call(b){return fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(b)}).then(r=>r.json())}
+    function call(b){return new Promise((resolve,reject)=>{const cb='sj_jsonp_'+Date.now()+'_'+Math.random().toString(36).slice(2);const script=document.createElement('script');const params=new URLSearchParams({...b,callback:cb});const cleanup=()=>{delete window[cb];script.remove()};const timeout=setTimeout(()=>{cleanup();reject(new Error('API timeout'))},20000);window[cb]=(data)=>{clearTimeout(timeout);cleanup();resolve(data)};script.onerror=()=>{clearTimeout(timeout);cleanup();reject(new Error('API network error'))};script.src=API+'?'+params.toString();document.body.appendChild(script)})}
     function chime(){try{const a=new (window.AudioContext||window.webkitAudioContext)();
       [[523,0],[659,.18],[784,.36],[1047,.54],[784,.9],[1047,1.1]].forEach(([f,t])=>{const o=a.createOscillator(),g=a.createGain();o.type='triangle';o.frequency.value=f;
       g.gain.setValueAtTime(0,a.currentTime+t);g.gain.linearRampToValueAtTime(.25,a.currentTime+t+.03);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+t+1.1);o.connect(g).connect(a.destination);o.start(a.currentTime+t);o.stop(a.currentTime+t+1.2)})}catch(e){}}
@@ -283,7 +283,7 @@
     function exportXlsx(){const ws=XLSX.utils.json_to_sheet(rows.map((r,i)=>({Bil:i+1,Nama:r.name,Kehadiran:r.status,Masa:fmt(r.at)})));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'RSVP');XLSX.writeFile(wb,'rsvp-sejasmin.xlsx')}
     const key=()=>{try{return sessionStorage.getItem('sj_adm')||''}catch(e){return ''}};
     async function delRow(id){try{const r=await call({action:'delete',id,key:key()});if(!r.ok)throw 0;refresh()}catch(e){alert('Gagal memadam.')}}
-    async function refresh(){try{const r=await fetch(API+'?action=list&key='+encodeURIComponent(key())).then(r=>r.json());
+    async function refresh(){try{const r=await call({action:'list',key:key()});
         if(!r.ok){try{sessionStorage.removeItem('sj_adm')}catch(e){}showLogin(r.error==='auth'?'Kata laluan salah.':'Gagal memuatkan data.');return}
         rows=r.rows;renderAdmin()}catch(e){$('adm-body').innerHTML='<p>Gagal memuatkan data.</p>'}}
     function showLogin(msg){clearInterval(timer);$('adm-body').innerHTML=`<div style="max-width:320px;margin:30px 0"><p>Akses admin sahaja.</p><div class="tools"><input id="pw" type="password" placeholder="Kata laluan admin"><button id="pwb">Masuk</button></div><p style="color:#a33">${msg||''}</p></div>`;

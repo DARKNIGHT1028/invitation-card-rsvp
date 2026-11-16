@@ -12,9 +12,50 @@ main{width:min(100%,650px);margin:auto}.card{position:relative;overflow:hidden;t
 .card:before,.card:after{content:'✿';position:absolute;color:#d8b7aa;opacity:.38;font:110px Georgia;pointer-events:none}.card:before{top:-25px;left:-8px;transform:rotate(-25deg)}.card:after{bottom:-32px;right:-8px;transform:rotate(25deg)}
 .kicker{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);font-weight:700}.arabic{font:27px 'Cormorant Garamond',serif;color:var(--wine);margin:0 0 12px}.greeting{font:20px 'Cormorant Garamond',serif;color:var(--rose)}h1{font:clamp(38px,8vw,58px)/1 'Parisienne',cursive;color:var(--rose);margin:12px 0 8px}.subtitle{font:13px 'Cormorant Garamond',serif;letter-spacing:.2em;text-transform:uppercase;color:var(--wine)}.rule{color:var(--gold);letter-spacing:.4em;margin:22px}.invited{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}.audience{font:600 23px 'Cormorant Garamond',serif;color:var(--wine)}.date{display:flex;align-items:center;justify-content:center;gap:22px;margin:28px auto;color:var(--wine)}.date span{font-size:11px;line-height:1.7;letter-spacing:.1em;text-transform:uppercase;border-block:1px solid #dfc9a8;padding:8px}.date strong{font:70px/.9 'Cormorant Garamond',serif;color:var(--rose)}.details{display:grid;gap:18px;margin:25px auto}.label{font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:6px}.value{font:18px/1.5 'Cormorant Garamond',serif}.venue{font:13px/1.7 'DM Sans',sans-serif;color:#705d59}.theme{display:inline-block;border:1px solid var(--gold);border-radius:40px;padding:8px 24px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--wine)}.closing{font:28px 'Parisienne',cursive;color:var(--rose);margin:28px 0 0}
 .rsvp{margin:42px auto 0;text-align:center;background:#fffdfb;border:1px solid #e7d6ce;border-radius:18px;padding:25px;box-shadow:0 12px 35px #70444d12}.rsvp h2{font:38px 'Cormorant Garamond',serif;color:var(--wine);margin:5px}.rsvp p{font-size:13px;color:var(--muted);line-height:1.7}.field{text-align:left;margin:16px 0}.field label{display:block;font-size:12px;font-weight:700;color:var(--wine);margin-bottom:7px}.field input{width:100%;padding:13px;border:1px solid #e1c6bd;border-radius:10px;font:16px 'DM Sans',sans-serif}.choices{display:flex;gap:10px}.choices button,.submit{border:1px solid var(--gold);border-radius:30px;padding:12px 20px;cursor:pointer;font-weight:700}.choices button{flex:1;background:#fff7f2;color:var(--wine)}.choices button.selected,.submit{background:var(--wine);color:#fffaf6}.submit{width:100%;margin-top:12px}.submit:disabled{opacity:.55;cursor:wait}#message{min-height:24px;font-size:13px;color:var(--wine);margin-top:12px}.footer{text-align:center;margin:28px 0;color:#a58b84;font-size:10px;letter-spacing:.15em}
+
+/* Interactive invitation opening */
+body.intro-active{overflow:hidden}
+main{opacity:0;transform:translateY(22px);transition:opacity .8s ease,transform .8s ease}
+body.invitation-open main{opacity:1;transform:translateY(0)}
+.intro-screen{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at 15% 15%,#f0d8d4,transparent 38%),radial-gradient(ellipse at 85% 85%,#eddfd1,transparent 36%),linear-gradient(135deg,#fffaf7,#f8efeb);transition:opacity .8s ease,visibility .8s ease}
+.intro-screen.dismissed{opacity:0;visibility:hidden;pointer-events:none}
+.intro-content{text-align:center;width:min(100%,430px)}
+.intro-kicker{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:30px}
+.envelope-button{position:relative;display:block;width:min(82vw,330px);height:220px;margin:0 auto 28px;padding:0;border:0;background:transparent;cursor:pointer;perspective:1000px;filter:drop-shadow(0 20px 24px #70444d24)}
+.envelope{position:absolute;inset:28px 0 0;background:linear-gradient(145deg,#e9c9c4,#d9aaa7);border:1px solid #c99491;border-radius:5px;overflow:visible}
+.envelope:before,.envelope:after{content:"";position:absolute;inset:0}
+.envelope:before{background:linear-gradient(35deg,transparent 49.5%,#c88f91 50%,transparent 50.5%),linear-gradient(-35deg,transparent 49.5%,#d19d99 50%,transparent 50.5%);z-index:2}
+.envelope:after{background:linear-gradient(145deg,#f0d8d2,#e4bdb8);clip-path:polygon(0 0,50% 57%,100% 0,100% 100%,0 100%);z-index:3}
+.envelope-flap{position:absolute;left:0;right:0;top:0;height:58%;background:linear-gradient(145deg,#f5e0da,#d9aaa7);clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:top;transition:transform .75s ease;z-index:5;backface-visibility:hidden}
+.envelope-letter{position:absolute;left:8%;right:8%;bottom:12px;height:145px;background:#fffaf6;border:1px solid #d9c4b4;display:grid;place-items:center;color:var(--wine);font:italic 24px 'Parisienne',cursive;transition:transform .85s ease;z-index:1}
+.envelope-seal{position:absolute;z-index:6;left:50%;top:52%;transform:translate(-50%,-50%);width:43px;height:43px;border-radius:50%;display:grid;place-items:center;background:#b58a72;color:#fff6ec;border:2px solid #f2d8c5;font-size:20px;transition:opacity .3s ease}
+.envelope-button:hover .envelope{transform:translateY(-4px)}
+.envelope-button:focus-visible{outline:3px solid var(--wine);outline-offset:8px;border-radius:8px}
+.envelope-button.opening .envelope-flap{transform:rotateX(180deg)}
+.envelope-button.opening .envelope-letter{transform:translateY(-105px);transition-delay:.2s}
+.envelope-button.opening .envelope-seal{opacity:0}
+.open-prompt{font:20px 'Cormorant Garamond',serif;color:var(--wine);margin:0 0 8px}
+.open-hint{font-size:11px;letter-spacing:.12em;color:var(--muted)}
+@media(prefers-reduced-motion:reduce){.intro-screen,main,.envelope-flap,.envelope-letter{transition-duration:.01ms!important}}
+
 @media(min-width:600px){.details{grid-template-columns:1fr 1fr}.details .wide{grid-column:1/-1}}
 </style></head>
-<body><main>
+<body class="intro-active">
+<section class="intro-screen" id="introScreen" aria-label="Pembukaan kad jemputan">
+  <div class="intro-content">
+    <div class="intro-kicker">Jemputan istimewa untuk anda</div>
+    <button class="envelope-button" id="openInvitation" type="button" aria-label="Buka sampul jemputan">
+      <span class="envelope">
+        <span class="envelope-letter">Dengan penuh kasih</span>
+        <span class="envelope-flap"></span>
+        <span class="envelope-seal">✿</span>
+      </span>
+    </button>
+    <p class="open-prompt">Anda dijemput</p>
+    <p class="open-hint">KLIK SAMPUL UNTUK MEMBUKA JEMPUTAN</p>
+  </div>
+</section>
+<main>
 <section class="card">
 <p class="arabic">السلام عليكم ورحمة الله وبركاته</p><p class="greeting">Selamat Sejahtera</p><div class="rule">✦ ❀ ✦</div>
 <p class="invited">Dengan segala hormatnya menjemput</p><div class="audience">SEMUA GURU DAN<br>KAKITANGAN SEJASMIN</div>
@@ -30,6 +71,18 @@ main{width:min(100%,650px);margin:auto}.card{position:relative;overflow:hidden;t
 <p class="footer">MAJLIS HI-TEA SEJASMIN · KENDURI SERUMPUN KASIH</p>
 </main>
 <script>
+const openInvitationButton=document.getElementById('openInvitation');
+const introScreen=document.getElementById('introScreen');
+openInvitationButton.addEventListener('click',()=>{
+  if(openInvitationButton.classList.contains('opening')) return;
+  openInvitationButton.classList.add('opening');
+  window.setTimeout(()=>{
+    introScreen.classList.add('dismissed');
+    document.body.classList.remove('intro-active');
+    document.body.classList.add('invitation-open');
+    window.setTimeout(()=>introScreen.remove(),850);
+  },1050);
+});
 const GOOGLE_APPS_SCRIPT_URL='PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE';
 let attendance='';
 document.querySelectorAll('[data-status]').forEach(button=>button.addEventListener('click',()=>{attendance=button.dataset.status;document.querySelectorAll('[data-status]').forEach(b=>b.classList.toggle('selected',b===button));}));

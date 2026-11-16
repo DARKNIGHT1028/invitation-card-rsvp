@@ -44,7 +44,7 @@ body.invitation-open main{opacity:1;transform:translateY(0)}
 body.sheet-open{overflow:hidden}
 #rsvpTab{position:fixed;left:0;right:0;bottom:0;z-index:8;display:none;padding:13px 0 calc(15px + env(safe-area-inset-bottom,0px));text-align:center;background:linear-gradient(transparent,#70444de8 58%);color:#fff5ed;cursor:pointer;user-select:none;touch-action:none;font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:700}
 #rsvpTab.visible{display:block}
-#rsvpTab .bar{width:46px;height:5px;border-radius:5px;background:#dfc9a8;margin:0 auto 8px;animation:tabBob 1.4s infinite}
+#rsvpTab .bar{width:46px;height:5px;border-radius:5px;background:#dfc9a8;margin:0 auto 8px;animation:tabBob 1.4s infinite}#rsvpTab{display:block;transform:translateY(calc(100% - 12px));transition:transform .35s ease}#rsvpTab.visible{display:block;transform:translateY(0)}
 @keyframes tabBob{50%{transform:translateY(-5px)}}
 #rsvpSheet{position:fixed;inset:0;z-index:12;background:rgba(112,68,77,.28);-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px);padding:max(62px,10vh) 18px calc(22px + env(safe-area-inset-bottom,0px));overflow:auto;transform:translateY(105%);transition:transform .55s cubic-bezier(.2,.8,.2,1)}
 #rsvpSheet.up{transform:translateY(0)}
@@ -128,7 +128,8 @@ openInvitationButton.addEventListener('click',()=>{
   },1050);
 });
 const MS_CLIENT_ID='025cd6ac-dc44-4642-805f-475cbda805fc';
-const ONEDRIVE_ITEM_ID='2616A7A59C8A7070!s6cf1033215964378ab1759468eb4ff68';
+const ONEDRIVE_DRIVE_ID='2616A7A59C8A7070';
+const ONEDRIVE_ITEM_ID='s6cf1033215964378ab1759468eb4ff68';
 const GRAPH_BASE='https://graph.microsoft.com/v1.0';
 const msalInstance=new msal.PublicClientApplication({
  auth:{clientId:MS_CLIENT_ID,authority:'https://login.microsoftonline.com/common',redirectUri:'https://darknight1028.github.io/invitation-card-rsvp/'},
@@ -170,14 +171,14 @@ async function graphRequest(path,token,options={}){
 }
 async function saveRsvpToExcel(name,status){
  const token=await getGraphToken();
- const workbookPath='/me/drive/items/'+encodeURIComponent(ONEDRIVE_ITEM_ID)+'/workbook';
+ const workbookPath='/drives/'+encodeURIComponent(ONEDRIVE_DRIVE_ID)+'/items/'+encodeURIComponent(ONEDRIVE_ITEM_ID)+'/workbook';
  const sheets=await graphRequest(workbookPath+'/worksheets',token);
  if(!sheets.value||!sheets.value.length)throw new Error('Workbook tidak mempunyai worksheet.');
  const sheetId=encodeURIComponent(sheets.value[0].id);
  let tables=await graphRequest(workbookPath+'/worksheets/'+sheetId+'/tables',token);
  let table=tables.value&&tables.value[0];
  if(!table){
-  table=await graphRequest(workbookPath+'/worksheets/'+sheetId+'/tables/add',token,{method:'POST',body:JSON.stringify({address:'A1:C1',hasHeaders:true})});
+  table=await graphRequest(workbookPath+'/worksheets/'+sheetId+'/tables/add',token,{method:'POST',body:JSON.stringify({address:'B1:D1',hasHeaders:true})});
   await graphRequest(workbookPath+'/tables/'+encodeURIComponent(table.id)+'/headerRowRange',token);
  }
  await graphRequest(workbookPath+'/tables/'+encodeURIComponent(table.id)+'/rows/add',token,{method:'POST',body:JSON.stringify({values:[[new Date().toISOString(),name,status]]})});

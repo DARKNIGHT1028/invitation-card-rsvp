@@ -117,6 +117,18 @@
     table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:10px 12px;text-align:left;border-bottom:1px solid #f1e6e0;white-space:nowrap}th{background:var(--wine);color:#fff}
     .tag{padding:3px 10px;border-radius:12px;color:#fff;font-size:12px}.tag.y{background:#6f9473}.tag.n{background:#b5545c}
     .del{background:none;border:0;color:#a33;cursor:pointer}
+    .rsvp-card{background:linear-gradient(160deg,#fffdfa,#fff7f2);border:1px solid #e7d6ce;border-radius:22px;padding:28px clamp(18px,5vw,32px) 22px;box-shadow:var(--shadow);text-align:left}
+    .rsvp-card .rsvp-kicker,.rsvp-card h2,.rsvp-card>p{text-align:center}
+    .rsvp-card label{display:block;font-size:12px;font-weight:700;color:var(--wine);margin:18px 0 8px}
+    .rsvp-card input{width:100%;border:1px solid #e1c6bd;border-radius:14px;padding:14px;background:#fff;color:var(--ink);font:16px 'DM Sans',sans-serif}
+    .rsvp-card input:focus{outline:none;border-color:var(--dusty);box-shadow:0 0 0 3px #a96f7626}
+    .rsvp-choice{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .rsvp-choice button{border:1px solid var(--gold);border-radius:99px;padding:13px;background:#fff7f2;color:var(--wine);font-weight:700;font-size:13px;cursor:pointer;transition:.2s}
+    .rsvp-choice button.sel{background:var(--wine);color:#fffaf6}
+    .rsvp-go{width:100%;margin-top:22px;padding:15px;font-size:12px}
+    .primary-btn:disabled{opacity:.6;cursor:default}
+    .rsvp-card .msg{font-size:13px;color:var(--muted);margin-top:12px}
+    .sheet-card{margin:0 auto!important;max-width:440px}
     .hidden{display:none!important}
   </style>
 </head>
@@ -176,18 +188,27 @@
       <div class="rule">✧ ❀ ✧</div>
       <p class="closing">Kami menantikan kehadiran anda</p>
     </article>
-
-    
     <div class="footer">MAJLIS HI-TEA SEJASMIN · KENDURI SERUMPUN KASIH</div>
   </main>
 
 
   <div class="tab" id="tab"><div class="bar"></div>▲ Leret ke atas untuk kehadiran</div>
-  <div id="sheet"><div class="att"><h2>ATTENDANCE</h2><div class="sub0">Kehadiran</div>
-    <div class="in"><label for="nm">Name</label><input id="nm" maxlength="80" autocomplete="name">
-      <div class="ch"><button class="y" id="by">Hadir</button><button class="n" id="bn">Tidak hadir</button></div></div>
-    <div class="sub"><button id="go">Submit</button></div><div class="msg" id="msg"></div></div>
-    <button class="close" id="cl">Tutup ▼</button></div>
+  <div id="sheet">
+    <div class="rsvp-section sheet-card">
+      <div class="rsvp-card">
+        <div class="rsvp-kicker">Pengesahan Kehadiran</div>
+        <h2>RSVP</h2>
+        <p>Sila isi nama dan pilih status kehadiran anda.</p>
+        <label for="nm">Nama</label>
+        <input id="nm" maxlength="80" autocomplete="name">
+        <label>Kehadiran</label>
+        <div class="rsvp-choice"><button type="button" id="by">Hadir</button><button type="button" id="bn">Tidak hadir</button></div>
+        <button type="button" class="primary-btn rsvp-go" id="go">Hantar RSVP</button>
+        <div class="msg" id="msg"></div>
+      </div>
+    </div>
+    <button class="close" id="cl" type="button">Tutup ▼</button>
+  </div>
   <div id="admin" class="hidden"><div class="wrap"><h1>Dashboard Admin</h1><div style="color:#8a7774">Majlis Hi-Tea SeJasmin · 29 Nov 2026</div><div id="adm-body"></div></div></div>
 
   <script>
@@ -207,7 +228,7 @@
         intro.classList.add('hide');
         main.classList.add('show');
         window.scrollTo({top:0,behavior:'smooth'});
-        releasePetals();document.getElementById('tab').classList.add('show');
+        releasePetals();$('tab').classList.add('show');
       },1050);
     }
     openBtn.addEventListener('click',openInvitation);
@@ -244,7 +265,7 @@
     $('by').onclick=()=>pick('Hadir');$('bn').onclick=()=>pick('Tidak hadir');
     $('go').onclick=async()=>{const n=$('nm').value.trim(),m=$('msg');
       if(!n||!sel){m.textContent='Sila isi nama dan pilih kehadiran.';return}
-      if(API.startsWith('PASTE')){m.textContent='Penyimpanan belum disambungkan.';return}
+      if(API.startsWith('PASTE')){m.textContent='Sambungan Google Sheets belum dikonfigurasi. Sila hubungi penganjur.';return}
       $('go').disabled=true;m.textContent='Menghantar…';
       try{const r=await call({action:'rsvp',id:gid(),name:n,status:sel});if(!r.ok)throw 0;m.textContent='Terima kasih, '+n+'! Kehadiran anda telah direkodkan. ✔';$('nm').value='';pick(null)}
       catch(e){m.textContent='Gagal menghantar. Cuba lagi.'}

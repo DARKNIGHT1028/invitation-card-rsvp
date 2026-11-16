@@ -1,6 +1,6 @@
 // Google Apps Script backend for the SeJasmin invitation.
 // Sheet layout (tab "RSVP"): A Timestamp | B Nama Tetamu | C Kehadiran | D ID (helper)
-const SHEET_ID  = '1kyoV80-YOn6bjPnX-1M4u6GWoLWNTY6E';
+const SHEET_ID  = '1sNT9ROqSQHwxhfApVyL3MVKKxeTLlqHWqI0VYw17Hd0';
 const ADMIN_KEY = 'CHANGE_THIS_PASSWORD';   // password for index.html#admin
 const TAB = 'RSVP';
 const HEAD = ['Timestamp', 'Nama Tetamu', 'Kehadiran', 'ID'];

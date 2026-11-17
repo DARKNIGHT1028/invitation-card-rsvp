@@ -117,6 +117,8 @@
     table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:10px 12px;text-align:left;border-bottom:1px solid #f1e6e0;white-space:nowrap}th{background:var(--wine);color:#fff}
     .tag{padding:3px 10px;border-radius:12px;color:#fff;font-size:12px}.tag.y{background:#6f9473}.tag.n{background:#b5545c}
     .del{background:none;border:0;color:#a33;cursor:pointer}
+    .tools .bulk{background:#a33}.tools .bulk:disabled{opacity:.4;cursor:default}
+    td input[type=checkbox],th input[type=checkbox]{width:16px;height:16px;cursor:pointer}
     .rsvp-card{background:linear-gradient(160deg,#fffdfa,#fff7f2);border:1px solid #e7d6ce;border-radius:22px;padding:28px clamp(18px,5vw,32px) 22px;box-shadow:var(--shadow);text-align:left}
     .rsvp-card .rsvp-kicker,.rsvp-card h2,.rsvp-card>p{text-align:center}
     .rsvp-card label{display:block;font-size:12px;font-weight:700;color:var(--wine);margin:18px 0 8px}
@@ -247,7 +249,7 @@
 
     const $=id=>document.getElementById(id);
     const API='https://script.google.com/macros/s/AKfycbzw0yRRnGsCyMWPH6YsS-zpG6VNcIS_jbft4jUZh57J6zLe3vMD-psrANHEkwUAxEUs/exec';
-    let sel=null,rows=[],adminStarted=false,timer=null;
+    let sel=null,rows=[],adminStarted=false,timer=null,picked=new Set(),busy=false;
     function gid(){try{let g=localStorage.getItem('sj_gid');if(!g){g='g'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);localStorage.setItem('sj_gid',g)}return g}catch(e){return 'g'+Date.now().toString(36)+Math.random().toString(36).slice(2,8)}}
     function call(b){return fetch(API+'?'+new URLSearchParams(b)).then(r=>r.json())}
     function chime(){try{const a=new (window.AudioContext||window.webkitAudioContext)();
@@ -276,20 +278,27 @@
       const list=rows.filter(r=>r.name.toLowerCase().includes(q)&&(!f||r.status===f));
       const h=rows.filter(r=>r.status==='Hadir').length,t=rows.length-h;
       $('adm-body').innerHTML=`<div class="stats"><div class="stat"><b>${rows.length}</b>Jumlah RSVP</div><div class="stat"><b>${h}</b>Hadir</div><div class="stat"><b>${t}</b>Tidak hadir</div></div>
-      <div class="tools"><input id="q" placeholder="Cari nama" value="${esc(q)}"><select id="f"><option value="">Semua</option><option ${f==='Hadir'?'selected':''}>Hadir</option><option ${f==='Tidak hadir'?'selected':''}>Tidak hadir</option></select><button id="xl">⬇ Muat turun Excel</button></div>
-      <div class="tw"><table><tr><th>#</th><th>Nama</th><th>Status</th><th>Masa</th><th></th></tr>${list.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.name)}</td><td><span class="tag ${r.status==='Hadir'?'y':'n'}">${esc(r.status)}</span></td><td>${fmt(r.at)}</td><td><button class="del" data-id="${r.id}">Padam</button></td></tr>`).join('')||'<tr><td colspan="5">Tiada rekod.</td></tr>'}</table></div>`;
+      <div class="tools"><input id="q" placeholder="Cari nama" value="${esc(q)}"><select id="f"><option value="">Semua</option><option ${f==='Hadir'?'selected':''}>Hadir</option><option ${f==='Tidak hadir'?'selected':''}>Tidak hadir</option></select><button id="xl">⬇ Muat turun Excel</button><button id="bd" class="bulk" ${picked.size?'':'disabled'}>🗑 Padam dipilih (${picked.size})</button></div>
+      <div class="tw"><table><tr><th><input type="checkbox" id="all" ${list.length&&list.every(r=>picked.has(r.id))?'checked':''}></th><th>#</th><th>Nama</th><th>Status</th><th>Masa</th><th></th></tr>${list.map((r,i)=>`<tr><td><input type="checkbox" class="ck" data-id="${r.id}" ${picked.has(r.id)?'checked':''}></td><td>${i+1}</td><td>${esc(r.name)}</td><td><span class="tag ${r.status==='Hadir'?'y':'n'}">${esc(r.status)}</span></td><td>${fmt(r.at)}</td><td><button class="del" data-id="${r.id}">Padam</button></td></tr>`).join('')||'<tr><td colspan="6">Tiada rekod.</td></tr>'}</table></div>`;
       $('q').oninput=()=>{const p=$('q').selectionStart;renderAdmin();$('q').focus();$('q').setSelectionRange(p,p)};$('f').onchange=renderAdmin;$('xl').onclick=exportXlsx;
-      document.querySelectorAll('.del').forEach(b=>b.onclick=()=>confirm('Padam rekod ini?')&&delRow(b.dataset.id))}
+      document.querySelectorAll('.del').forEach(b=>b.onclick=()=>confirm('Padam rekod ini?')&&delRow(b.dataset.id));
+      document.querySelectorAll('.ck').forEach(c=>c.onchange=()=>{c.checked?picked.add(c.dataset.id):picked.delete(c.dataset.id);renderAdmin()});
+      $('all').onchange=e=>{list.forEach(r=>e.target.checked?picked.add(r.id):picked.delete(r.id));renderAdmin()};
+      $('bd').onclick=delMany}
+    async function delMany(){const ids=[...picked];if(!ids.length||!confirm('Padam '+ids.length+' rekod yang dipilih? Tindakan ini tidak boleh dibatalkan.'))return;
+      busy=true;const rowIds=ids.filter(i=>/^row\d+$/.test(i)).sort((a,b)=>b.slice(3)-a.slice(3)),rest=ids.filter(i=>!/^row\d+$/.test(i));let done=0,fail=0;
+      for(const id of [...rowIds,...rest]){$('bd').textContent='Memadam '+(++done)+'/'+ids.length+'…';try{const r=await call({action:'delete',id,key:key()});if(!r.ok)throw 0;picked.delete(id)}catch(e){fail++}}
+      busy=false;if(fail)alert(fail+' rekod gagal dipadam.');refresh()}
     function exportXlsx(){const ws=XLSX.utils.json_to_sheet(rows.map((r,i)=>({Bil:i+1,Nama:r.name,Kehadiran:r.status,Masa:fmt(r.at)})));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'RSVP');XLSX.writeFile(wb,'rsvp-sejasmin.xlsx')}
     const key=()=>{try{return sessionStorage.getItem('sj_adm')||''}catch(e){return ''}};
-    async function delRow(id){try{const r=await call({action:'delete',id,key:key()});if(!r.ok)throw 0;refresh()}catch(e){alert('Gagal memadam.')}}
+    async function delRow(id){picked.delete(id);try{const r=await call({action:'delete',id,key:key()});if(!r.ok)throw 0;refresh()}catch(e){alert('Gagal memadam.')}}
     async function refresh(){try{const r=await fetch(API+'?action=list&key='+encodeURIComponent(key())).then(r=>r.json());
         if(!r.ok){try{sessionStorage.removeItem('sj_adm')}catch(e){}showLogin(r.error==='auth'?'Kata laluan salah.':'Gagal memuatkan data.');return}
         rows=r.rows;renderAdmin()}catch(e){$('adm-body').innerHTML='<p>Gagal memuatkan data.</p>'}}
     function showLogin(msg){clearInterval(timer);$('adm-body').innerHTML=`<div style="max-width:320px;margin:30px 0"><p>Akses admin sahaja.</p><div class="tools"><input id="pw" type="password" placeholder="Kata laluan admin"><button id="pwb">Masuk</button></div><p style="color:#a33">${msg||''}</p></div>`;
       const go=()=>{try{sessionStorage.setItem('sj_adm',$('pw').value)}catch(e){}loadAdmin()};$('pwb').onclick=go;$('pw').onkeydown=e=>e.key==='Enter'&&go()}
     function loadAdmin(){if(API.startsWith('PASTE')){$('adm-body').innerHTML='<p>Pangkalan data belum disambungkan.</p>';return}
-      if(!key())return showLogin();$('adm-body').innerHTML='<p>Memuatkan…</p>';refresh();clearInterval(timer);timer=setInterval(()=>{if(document.activeElement?.id!=='q'&&key())refresh()},20000)}
+      if(!key())return showLogin();$('adm-body').innerHTML='<p>Memuatkan…</p>';refresh();clearInterval(timer);timer=setInterval(()=>{if(!busy&&document.activeElement?.id!=='q'&&key())refresh()},20000)}
     function route(){const a=location.hash==='#admin';$('admin').classList.toggle('hidden',!a);if(a&&!adminStarted){adminStarted=true;loadAdmin()}}
     addEventListener('hashchange',route);route();
   </script>

@@ -213,7 +213,7 @@
   </div>
   <div id="admin" class="hidden"><div class="wrap"><h1>Dashboard Admin</h1><div style="color:#8a7774">Majlis Hi-Tea SeJasmin · 29 Nov 2026</div><div id="adm-body"></div></div></div>
 
-  <audio id="bgMusic" src="https://raw.githubusercontent.com/DARKNIGHT1028/invitation-card-rsvp/main/sejasmin-background-music.mp3" preload="auto" loop></audio>
+  <audio id="bgMusic" src="https://darknight1028.github.io/invitation-card-rsvp/sejasmin-background-music.mp3" preload="auto" loop></audio>
 
   <script>
     const intro = document.getElementById('intro');
@@ -259,16 +259,19 @@
       if (!music) return;
       music.volume = 0.45;
       music.muted = false;
+      // Call play() directly during the envelope click to satisfy browser gesture rules.
       const playback = music.play();
       if (playback && typeof playback.catch === 'function') {
         playback.catch(error => {
-          console.error('SeJasmin background music failed:', error);
-          // Retry from the GitHub Pages asset URL if the raw source is unavailable.
-          if (music.error) {
-            music.src = 'https://darknight1028.github.io/invitation-card-rsvp/sejasmin-background-music.mp3';
-            music.load();
-            music.play().catch(err => console.error('Background music retry failed:', err));
-          }
+          console.error('SeJasmin music playback error:', error, 'Audio error code:', music.error && music.error.code);
+          // Reveal native controls so visitors can start playback manually if their browser blocks it.
+          music.controls = true;
+          music.style.position = 'fixed';
+          music.style.bottom = '12px';
+          music.style.left = '50%';
+          music.style.transform = 'translateX(-50%)';
+          music.style.width = 'min(320px, 90vw)';
+          music.style.zIndex = '9999';
         });
       }
     }

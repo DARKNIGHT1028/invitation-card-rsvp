@@ -289,7 +289,12 @@
       busy=true;const rowIds=ids.filter(i=>/^row\d+$/.test(i)).sort((a,b)=>b.slice(3)-a.slice(3)),rest=ids.filter(i=>!/^row\d+$/.test(i));let done=0,fail=0;
       for(const id of [...rowIds,...rest]){$('bd').textContent='Memadam '+(++done)+'/'+ids.length+'…';try{const r=await call({action:'delete',id,key:key()});if(!r.ok)throw 0;picked.delete(id)}catch(e){fail++}}
       busy=false;if(fail)alert(fail+' rekod gagal dipadam.');refresh()}
-    function exportXlsx(){const ws=XLSX.utils.json_to_sheet(rows.map((r,i)=>({Bil:i+1,Nama:r.name,Kehadiran:r.status,Masa:fmt(r.at)})));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'RSVP');XLSX.writeFile(wb,'rsvp-sejasmin.xlsx')}
+    function exportXlsx(){if(!rows.length){alert('Tiada rekod untuk dimuat turun.');return}
+      const sorted=[...rows].sort((a,b)=>a.name.localeCompare(b.name)),h=rows.filter(r=>r.status==='Hadir').length;
+      const ws=XLSX.utils.json_to_sheet(sorted.map((r,i)=>({Bil:i+1,'Nama Tetamu':r.name,Kehadiran:r.status,Masa:fmt(r.at)})));ws['!cols']=[{wch:6},{wch:34},{wch:14},{wch:22}];
+      const sm=XLSX.utils.aoa_to_sheet([['Majlis Hi-Tea SeJasmin'],[],['Jumlah RSVP',rows.length],['Hadir',h],['Tidak hadir',rows.length-h]]);sm['!cols']=[{wch:24},{wch:10}];
+      const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Senarai Kehadiran');XLSX.utils.book_append_sheet(wb,sm,'Ringkasan');
+      XLSX.writeFile(wb,'senarai-kehadiran-sejasmin-'+new Date().toISOString().slice(0,10)+'.xlsx')}
     const key=()=>{try{return sessionStorage.getItem('sj_adm')||''}catch(e){return ''}};
     async function delRow(id){picked.delete(id);try{const r=await call({action:'delete',id,key:key()});if(!r.ok)throw 0;refresh()}catch(e){alert('Gagal memadam.')}}
     async function refresh(){try{const r=await fetch(API+'?action=list&key='+encodeURIComponent(key())).then(r=>r.json());

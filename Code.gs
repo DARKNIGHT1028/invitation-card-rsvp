@@ -55,12 +55,9 @@ function doGet(e) {
       lock.waitLock(20000);
       try {
         const sh = sheet_();
-        const n = Math.max(0, sh.getLastRow() - 1);
-        const ids = n ? sh.getRange(2, 4, n, 1).getValues().map(r => String(r[0])) : [];
-        const idx = ids.indexOf(id);
+        // Every submission is a new record. Never overwrite an earlier RSVP.
         const row = [new Date(), safe_(name), status, id];
-        if (idx >= 0) sh.getRange(idx + 2, 1, 1, 4).setValues([row]);
-        else sh.appendRow(row);
+        sh.appendRow(row);
       } finally {
         lock.releaseLock();
       }
@@ -74,7 +71,9 @@ function doGet(e) {
       values.forEach((r, i) => {
         if (!r[1] && !r[2]) return;
         rows.push({
-          id: String(r[3] || 'row' + (i + 2)),
+          // Use the physical sheet row as a unique admin delete key.
+          // Guest IDs may repeat, so they must not identify a row.
+          id: 'row' + (i + 2),
           at: r[0] ? new Date(r[0]).getTime() : 0,
           name: String(r[1]),
           status: String(r[2])
@@ -123,22 +122,29 @@ function doPost(e) {
   try {
     const b = JSON.parse(e.postData.contents);
     const sh = sheet_();
-    const n = Math.max(0, sh.getLastRow() - 1);
-    const ids = n ? sh.getRange(2, 4, n, 1).getValues().map(r => String(r[0])) : [];
-    const idx = ids.indexOf(String(b.id));
     if (b.action === 'rsvp') {
       const name = String(b.name || '').trim().slice(0, 80);
       if (!b.id || !name || ['Hadir', 'Tidak hadir'].indexOf(b.status) < 0) {
         return output_({ok:false, error:'invalid'});
       }
+      // Every submission is appended, even when the guest ID is repeated.
       const row = [new Date(), safe_(name), b.status, String(b.id)];
-      if (idx >= 0) sh.getRange(idx + 2, 1, 1, 4).setValues([row]);
-      else sh.appendRow(row);
+      sh.appendRow(row);
       return output_({ok:true});
     }
     if (b.action === 'delete') {
       if (b.key !== adminKey_()) return output_({ok:false, error:'auth'});
-      if (idx >= 0) sh.deleteRow(idx + 2);
+      const id = String(b.id || '');
+      const n = Math.max(0, sh.getLastRow() - 1);
+      const ids = n ? sh.getRange(2, 4, n, 1).getValues().map(r => String(r[0])) : [];
+      const m = /^row(\\d+)$/.exec(id);
+      if (m) {
+        const rowNumber = Number(m[1]);
+        if (rowNumber >= 2 && rowNumber <= sh.getLastRow()) sh.deleteRow(rowNumber);
+      } else {
+        const idx = ids.indexOf(id);
+        if (idx >= 0) sh.deleteRow(idx + 2);
+      }
       return output_({ok:true});
     }
     return output_({ok:false, error:'unknown'});

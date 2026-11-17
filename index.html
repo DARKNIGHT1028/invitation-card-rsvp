@@ -139,6 +139,35 @@
     .music-toggle.show{display:inline-flex}.music-toggle:focus-visible{outline:3px solid var(--gold-light);outline-offset:3px}
     .music-tab{position:fixed;left:0;top:50%;transform:translateY(-50%);z-index:21;display:none;align-items:center;gap:7px;padding:12px 9px;border:1px solid var(--gold);border-left:0;border-radius:0 13px 13px 0;background:linear-gradient(160deg,#8a5660,#70444d);color:#fff5ed;box-shadow:0 6px 18px #70444d35;cursor:pointer;writing-mode:vertical-rl;text-orientation:mixed;font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;-webkit-tap-highlight-color:transparent}
     .music-tab.show{display:flex}.music-tab .bar{display:none}.music-tab:focus-visible{outline:3px solid var(--gold-light);outline-offset:3px}
+    /* Responsive safeguards for browser zoom and narrow viewports */
+    html{width:100%;max-width:100%;overflow-x:clip}
+    body{width:100%;min-width:0;max-width:100%;overflow-x:clip}
+    .main,.intro{width:100%;min-width:0;max-width:100%}
+    .main{padding-left:clamp(10px,3.5vw,16px);padding-right:clamp(10px,3.5vw,16px)}
+    .invite-card,.rsvp-section,.footer,.intro-inner{min-width:0;max-width:100%}
+    .invite-card{width:100%;overflow-wrap:anywhere}
+    .date-panel{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:clamp(6px,2.5vw,14px)}
+    .date-side,.date-day,.details>div,.detail-value,.venue{min-width:0;overflow-wrap:anywhere}
+    .details{grid-template-columns:minmax(0,1fr)}
+    .rsvp-choice{grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(6px,2.5vw,12px)}
+    .rsvp-choice button{min-width:0;overflow-wrap:anywhere;padding-left:8px;padding-right:8px}
+    #sheet{box-sizing:border-box;width:100%;max-width:100%;padding-left:clamp(10px,4vw,18px);padding-right:clamp(10px,4vw,18px);overscroll-behavior:contain}
+    .rsvp-card{min-width:0;max-width:100%;overflow-wrap:anywhere}
+    .rsvp-card input{box-sizing:border-box;min-width:0;max-width:100%}
+    .music-toggle{max-width:calc(100vw - 24px)}
+    .music-tab{max-width:calc(100vw - 4px)}
+    #admin{box-sizing:border-box;width:100%;max-width:100%;padding:clamp(10px,3vw,20px)}
+    .wrap,.tools{min-width:0;max-width:100%}
+    .tools input,.tools select{min-width:0;max-width:100%}
+    .tw{max-width:100%;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+    @media(max-width:420px){
+      .invite-card{padding-left:clamp(14px,4vw,23px);padding-right:clamp(14px,4vw,23px)}
+      .date-side{font-size:clamp(8px,2.4vw,11px);letter-spacing:.06em}
+      .date-day{font-size:clamp(48px,13vw,78px)}
+      .venue{font-size:clamp(11px,3vw,14px)}
+      .rsvp-choice button{font-size:clamp(11px,3vw,13px)}
+      .music-toggle{left:8px}
+    }
     .hidden{display:none!important}
   </style>
 </head>

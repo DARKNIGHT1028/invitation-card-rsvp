@@ -146,3 +146,14 @@ function doPost(e) {
     lock.releaseLock();
   }
 }
+
+/**
+ * Manual connection test. Run this from the Apps Script editor.
+ * The account running this script must have Editor access to the spreadsheet.
+ */
+function testConnection() {
+  const sh = sheet_();
+  Logger.log('Spreadsheet connected successfully.');
+  Logger.log('Sheet name: ' + sh.getName());
+  Logger.log('Last row: ' + sh.getLastRow());
+}

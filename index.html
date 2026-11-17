@@ -125,8 +125,12 @@
     .rsvp-card input{width:100%;border:1px solid #e1c6bd;border-radius:14px;padding:14px;background:#fff;color:var(--ink);font:16px 'DM Sans',sans-serif}
     .rsvp-card input:focus{outline:none;border-color:var(--dusty);box-shadow:0 0 0 3px #a96f7626}
     .rsvp-choice{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .rsvp-choice button{border:1px solid var(--gold);border-radius:99px;padding:13px;background:#fff7f2;color:var(--wine);font-weight:700;font-size:13px;cursor:pointer;transition:.2s}
-    .rsvp-choice button.sel{background:var(--wine);color:#fffaf6}
+    .rsvp-choice button{border:1px solid transparent;border-radius:99px;padding:13px;font-weight:700;font-size:13px;cursor:pointer;transition:background .2s,border-color .2s,transform .2s}
+    .rsvp-choice #by{background:#e4f0e5;color:#28633a;border-color:#8bb895}
+    .rsvp-choice #by.sel{background:#347b49;color:#fff;border-color:#28633a;box-shadow:0 4px 12px #347b4933}
+    .rsvp-choice #bn{background:#f7e2e2;color:#9e3038;border-color:#d99a9e}
+    .rsvp-choice #bn.sel{background:#b83f49;color:#fff;border-color:#96313a;box-shadow:0 4px 12px #b83f4933}
+    .rsvp-choice button.sel{transform:translateY(-1px)}
     .rsvp-go{width:100%;margin-top:22px;padding:15px;font-size:12px}
     .primary-btn:disabled{opacity:.6;cursor:default}
     .rsvp-card .msg{font-size:13px;color:var(--muted);margin-top:12px}
@@ -305,6 +309,40 @@
     let sel=null,rows=[],adminStarted=false,timer=null,picked=new Set(),busy=false;
     function gid(){try{let g=localStorage.getItem('sj_gid');if(!g){g='g'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);localStorage.setItem('sj_gid',g)}return g}catch(e){return 'g'+Date.now().toString(36)+Math.random().toString(36).slice(2,8)}}
     function call(b){return fetch(API+'?'+new URLSearchParams(b)).then(r=>r.json())}
+    const musicChannel = ('BroadcastChannel' in window) ? new BroadcastChannel('sejasmin-music-tab') : null;
+    let resumeMusicWhenVisible = false;
+    function claimMusicForThisTab(){
+      if (musicChannel) musicChannel.postMessage('claim');
+      try { localStorage.setItem('sejasmin-music-tab-claim', String(Date.now()) + '-' + Math.random()); } catch (error) {}
+    }
+    function pauseForAnotherTab(){
+      const music = document.getElementById('bgMusic');
+      resumeMusicWhenVisible = false;
+      if (music && !music.paused) music.pause();
+    }
+    if (musicChannel) musicChannel.addEventListener('message', event => {
+      if (event.data === 'claim') pauseForAnotherTab();
+    });
+    window.addEventListener('storage', event => {
+      if (event.key === 'sejasmin-music-tab-claim') pauseForAnotherTab();
+    });
+    document.addEventListener('visibilitychange', () => {
+      const music = document.getElementById('bgMusic');
+      if (!music) return;
+      if (document.hidden) {
+        resumeMusicWhenVisible = !music.paused && !music.muted;
+        if (resumeMusicWhenVisible) music.pause();
+      } else if (resumeMusicWhenVisible && document.hasFocus()) {
+        resumeMusicWhenVisible = false;
+        claimMusicForThisTab();
+        music.play().catch(error => console.warn('Music resume blocked:', error));
+      }
+    });
+    window.addEventListener('pagehide', () => {
+      resumeMusicWhenVisible = false;
+      const music = document.getElementById('bgMusic');
+      if (music) music.pause();
+    });
     const musicToggle = document.getElementById('musicToggle');
     function updateMusicButton(){
       const music = document.getElementById('bgMusic');
@@ -318,9 +356,12 @@
       if (!music) return;
       if (music.paused || music.muted) {
         music.muted = false;
+        resumeMusicWhenVisible = false;
+        claimMusicForThisTab();
         try { await music.play(); }
         catch (error) { console.error('SeJasmin music playback error:', error); }
       } else {
+        resumeMusicWhenVisible = false;
         music.pause();
       }
       updateMusicButton();
@@ -334,6 +375,7 @@
       if (!music) return;
       music.volume = 0.45;
       music.muted = false;
+      claimMusicForThisTab();
       // Call play() directly during the envelope click to satisfy browser gesture rules.
       const playback = music.play();
       if (playback && typeof playback.catch === 'function') {

@@ -144,8 +144,9 @@
     body{width:100%;min-width:0;max-width:100%;overflow-x:clip}
     .main,.intro{width:100%;min-width:0;max-width:100%}
     .main{padding-left:clamp(10px,3.5vw,16px);padding-right:clamp(10px,3.5vw,16px)}
-    .invite-card,.rsvp-section,.footer,.intro-inner{min-width:0;max-width:100%}
-    .invite-card{width:100%;overflow-wrap:anywhere}
+    .invite-card,.rsvp-section,.footer,.intro-inner{min-width:0}
+    .invite-card{width:min(100%,620px);max-width:620px;overflow-wrap:anywhere}
+    .rsvp-section,.footer{width:min(100%,620px);max-width:620px}
     .date-panel{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:clamp(6px,2.5vw,14px)}
     .date-side,.date-day,.details>div,.detail-value,.venue{min-width:0;overflow-wrap:anywhere}
     .details{grid-template-columns:minmax(0,1fr)}

@@ -309,7 +309,7 @@
     function updateMusicButton(){
       const music = document.getElementById('bgMusic');
       const playing = !!music && !music.paused && !music.muted;
-      musicToggle.textContent = playing ? '♫ Muzik: ON' : '♫ Muzik: OFF';
+      musicToggle.textContent = playing ? '♫ Music: ON' : '♫ Music: OFF';
       musicToggle.setAttribute('aria-label', playing ? 'Matikan muzik' : 'Hidupkan muzik');
       musicToggle.setAttribute('aria-pressed', String(playing));
     }

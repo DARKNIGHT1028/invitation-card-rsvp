@@ -4,7 +4,9 @@
  * A Timestamp | B Nama Tetamu | C Kehadiran | D ID
  */
 const SHEET_ID = '1sNT9ROqSQHwxhfApVyL3MVKKxeTLlqHWqI0VYw17Hd0';
-const ADMIN_KEY = 'CHANGE_THIS_PASSWORD'; // Set a private password before deployment.
+function adminKey_() {
+  return PropertiesService.getScriptProperties().getProperty('ADMIN_KEY') || '';
+}
 const TAB = 'RSVP';
 const HEAD = ['Timestamp', 'Nama Tetamu', 'Kehadiran', 'ID'];
 
@@ -66,7 +68,7 @@ function doGet(e) {
     }
 
     if (p.action === 'list') {
-      if (p.key !== ADMIN_KEY) return output_({ok:false, error:'auth'}, cb);
+      if (p.key !== adminKey_()) return output_({ok:false, error:'auth'}, cb);
       const values = sheet_().getDataRange().getValues().slice(1);
       const rows = [];
       values.forEach((r, i) => {
@@ -83,7 +85,7 @@ function doGet(e) {
     }
 
     if (p.action === 'delete') {
-      if (p.key !== ADMIN_KEY) return output_({ok:false, error:'auth'}, cb);
+      if (p.key !== adminKey_()) return output_({ok:false, error:'auth'}, cb);
       const id = String(p.id || '');
       const lock = LockService.getScriptLock();
       lock.waitLock(20000);
@@ -135,7 +137,7 @@ function doPost(e) {
       return output_({ok:true});
     }
     if (b.action === 'delete') {
-      if (b.key !== ADMIN_KEY) return output_({ok:false, error:'auth'});
+      if (b.key !== adminKey_()) return output_({ok:false, error:'auth'});
       if (idx >= 0) sh.deleteRow(idx + 2);
       return output_({ok:true});
     }

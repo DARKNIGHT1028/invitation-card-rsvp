@@ -251,7 +251,7 @@
     const API='https://script.google.com/macros/s/AKfycbzw0yRRnGsCyMWPH6YsS-zpG6VNcIS_jbft4jUZh57J6zLe3vMD-psrANHEkwUAxEUs/exec';
     let sel=null,rows=[],adminStarted=false,timer=null,picked=new Set(),busy=false;
     function gid(){try{let g=localStorage.getItem('sj_gid');if(!g){g='g'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);localStorage.setItem('sj_gid',g)}return g}catch(e){return 'g'+Date.now().toString(36)+Math.random().toString(36).slice(2,8)}}
-    function call(b){return new Promise((resolve,reject)=>{const cb='sj_jsonp_'+Date.now()+'_'+Math.random().toString(36).slice(2);const script=document.createElement('script');const params=new URLSearchParams({...b,callback:cb});let finished=false;const cleanup=()=>{if(finished)return;finished=true;clearTimeout(timeout);try{delete window[cb]}catch(e){window[cb]=undefined}script.remove()};const timeout=setTimeout(()=>{cleanup();reject(new Error('API timeout: JSONP callback was not returned'))},20000);window[cb]=(data)=>{cleanup();resolve(data)};script.onerror=()=>{cleanup();reject(new Error('API script could not be loaded'))};script.src=API+'?'+params.toString();document.body.appendChild(script)})}
+    function call(b){return fetch(API+'?'+new URLSearchParams(b)).then(r=>r.json())}
     function chime(){try{const a=new (window.AudioContext||window.webkitAudioContext)();
       [[523,0],[659,.18],[784,.36],[1047,.54],[784,.9],[1047,1.1]].forEach(([f,t])=>{const o=a.createOscillator(),g=a.createGain();o.type='triangle';o.frequency.value=f;
       g.gain.setValueAtTime(0,a.currentTime+t);g.gain.linearRampToValueAtTime(.25,a.currentTime+t+.03);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+t+1.1);o.connect(g).connect(a.destination);o.start(a.currentTime+t);o.stop(a.currentTime+t+1.2)})}catch(e){}}
@@ -288,7 +288,7 @@
     async function delMany(){const ids=[...picked];if(!ids.length||!confirm('Padam '+ids.length+' rekod yang dipilih? Tindakan ini tidak boleh dibatalkan.'))return;
       busy=true;const rowIds=ids.filter(i=>/^row\d+$/.test(i)).sort((a,b)=>b.slice(3)-a.slice(3)),rest=ids.filter(i=>!/^row\d+$/.test(i));let done=0,fail=0;
       for(const id of [...rowIds,...rest]){$('bd').textContent='Memadam '+(++done)+'/'+ids.length+'…';try{const r=await call({action:'delete',id,key:key()});if(!r.ok)throw 0;picked.delete(id)}catch(e){fail++}}
-      busy=false;if(fail)alert(fail+' rekod gagal dipadam.');refresh()}
+      busy=false;picked.clear();if(fail)alert(fail+' rekod gagal dipadam.');refresh()}
     function exportXlsx(){if(!rows.length){alert('Tiada rekod untuk dimuat turun.');return}
       const sorted=[...rows].sort((a,b)=>a.name.localeCompare(b.name)),h=rows.filter(r=>r.status==='Hadir').length;
       const ws=XLSX.utils.json_to_sheet(sorted.map((r,i)=>({Bil:i+1,'Nama Tetamu':r.name,Kehadiran:r.status,Masa:fmt(r.at)})));ws['!cols']=[{wch:6},{wch:34},{wch:14},{wch:22}];
@@ -296,9 +296,9 @@
       const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Senarai Kehadiran');XLSX.utils.book_append_sheet(wb,sm,'Ringkasan');
       XLSX.writeFile(wb,'senarai-kehadiran-sejasmin-'+new Date().toISOString().slice(0,10)+'.xlsx')}
     let admKey='';const key=()=>admKey||(()=>{try{return sessionStorage.getItem('sj_adm')||''}catch(e){return ''}})();
-    async function delRow(id){picked.delete(id);try{const r=await call({action:'delete',id,key:key()});if(!r.ok)throw 0;refresh()}catch(e){alert('Gagal memadam.')}}
+    async function delRow(id){picked.clear();try{const r=await call({action:'delete',id,key:key()});if(!r.ok)throw 0;refresh()}catch(e){alert('Gagal memadam.')}}
     async function refresh(){let r;
-      try{r=await call({action:'list',key:key()})}
+      try{r=await fetch(API+'?action=list&key='+encodeURIComponent(key())).then(x=>x.json())}
       catch(e){showLogin('Tidak dapat berhubung dengan skrip Google. Semak pautan /exec dan tetapan akses "Anyone".');return}
       if(!r.ok){admKey='';try{sessionStorage.removeItem('sj_adm')}catch(e){}showLogin(r.error==='auth'?'Kata laluan salah.':'Ralat skrip: '+(r.error||'tidak diketahui'));return}
       if(!Array.isArray(r.rows)){showLogin('Skrip belum dikemas kini. Deploy versi baharu di Apps Script.');return}

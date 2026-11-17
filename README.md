@@ -27,6 +27,7 @@ In `index.html`, replace `PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE` with t
 ## 4. Publish with GitHub Pages
 In repository **Settings → Pages**, choose **Deploy from a branch**, select `main` and `/(root)`, then save. The site should publish at:
 https://darknight1028.github.io/invitation-card-rsvp/
+Release Version: 1.2v
 
 ## RSVP columns
 The script creates a tab named `RSVP` with:

@@ -359,7 +359,30 @@
     let s0=null;sheet.addEventListener('touchstart',e=>s0=e.touches[0].clientY,{passive:true});
     sheet.addEventListener('touchend',e=>{if(s0!==null&&sheet.scrollTop<=0&&e.changedTouches[0].clientY-s0>80)up(false);s0=null});
     function pick(v){sel=v;$('by').classList.toggle('sel',v==='Hadir');$('bn').classList.toggle('sel',v==='Tidak hadir')}
-    $('by').onclick=()=>pick('Hadir');$('bn').onclick=()=>pick('Tidak hadir');
+    $('by').onclick=()=>{pick('Hadir');playSelectionSound()};$('bn').onclick=()=>{pick('Tidak hadir');playSelectionSound()};
+    function playSelectionSound(){
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        if (ctx.state === 'suspended') ctx.resume();
+        const now = ctx.currentTime;
+        const oscillator = ctx.createOscillator();
+        const gain = ctx.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(740, now);
+        oscillator.frequency.exponentialRampToValueAtTime(560, now + 0.09);
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.055, now + 0.012);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+        oscillator.connect(gain).connect(ctx.destination);
+        oscillator.start(now);
+        oscillator.stop(now + 0.13);
+        setTimeout(() => ctx.close(), 300);
+      } catch (error) {
+        console.warn('Attendance selection sound could not play:', error);
+      }
+    }
     function playRsvpSuccessSound(){
       try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;

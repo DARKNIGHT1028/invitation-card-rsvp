@@ -225,9 +225,57 @@
     const openBtn = document.getElementById('openBtn');
     let opened = false;
 
+    function playEnvelopeOpenSound(){
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        if (ctx.state === 'suspended') ctx.resume();
+        const now = ctx.currentTime;
+
+        // Soft paper-rustle whoosh, followed by a gentle flap/tap.
+        const length = Math.floor(ctx.sampleRate * 0.42);
+        const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < length; i++) {
+          const fade = Math.sin(Math.PI * i / length);
+          data[i] = (Math.random() * 2 - 1) * fade;
+        }
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(1250, now);
+        filter.frequency.exponentialRampToValueAtTime(520, now + 0.34);
+        filter.Q.value = 0.7;
+        const rustle = ctx.createGain();
+        rustle.gain.setValueAtTime(0.0001, now);
+        rustle.gain.linearRampToValueAtTime(0.16, now + 0.07);
+        rustle.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+        noise.connect(filter).connect(rustle).connect(ctx.destination);
+        noise.start(now);
+        noise.stop(now + 0.42);
+
+        const tap = ctx.createOscillator();
+        const tapGain = ctx.createGain();
+        tap.type = 'sine';
+        tap.frequency.setValueAtTime(210, now + 0.22);
+        tap.frequency.exponentialRampToValueAtTime(105, now + 0.34);
+        tapGain.gain.setValueAtTime(0.0001, now);
+        tapGain.gain.setValueAtTime(0.075, now + 0.22);
+        tapGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.38);
+        tap.connect(tapGain).connect(ctx.destination);
+        tap.start(now + 0.22);
+        tap.stop(now + 0.39);
+        setTimeout(() => ctx.close(), 900);
+      } catch (error) {
+        console.warn('Envelope opening sound could not play:', error);
+      }
+    }
+
     function openInvitation(){
       if(opened) return;
-      opened = true;musicToggle.classList.add('show');startBackgroundMusic();
+      opened = true;playEnvelopeOpenSound();musicToggle.classList.add('show');startBackgroundMusic();
       envelope.classList.add('open');
       openBtn.disabled = true;
       openBtn.textContent = 'Jemputan dibuka';

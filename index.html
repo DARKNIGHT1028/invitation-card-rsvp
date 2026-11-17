@@ -295,13 +295,19 @@
       const sm=XLSX.utils.aoa_to_sheet([['Majlis Hi-Tea SeJasmin'],[],['Jumlah RSVP',rows.length],['Hadir',h],['Tidak hadir',rows.length-h]]);sm['!cols']=[{wch:24},{wch:10}];
       const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Senarai Kehadiran');XLSX.utils.book_append_sheet(wb,sm,'Ringkasan');
       XLSX.writeFile(wb,'senarai-kehadiran-sejasmin-'+new Date().toISOString().slice(0,10)+'.xlsx')}
-    const key=()=>{try{return sessionStorage.getItem('sj_adm')||''}catch(e){return ''}};
+    let admKey='';const key=()=>admKey||(()=>{try{return sessionStorage.getItem('sj_adm')||''}catch(e){return ''}})();
     async function delRow(id){picked.delete(id);try{const r=await call({action:'delete',id,key:key()});if(!r.ok)throw 0;refresh()}catch(e){alert('Gagal memadam.')}}
-    async function refresh(){try{const r=await fetch(API+'?action=list&key='+encodeURIComponent(key())).then(r=>r.json());
-        if(!r.ok){try{sessionStorage.removeItem('sj_adm')}catch(e){}showLogin(r.error==='auth'?'Kata laluan salah.':'Gagal memuatkan data.');return}
-        rows=r.rows;renderAdmin()}catch(e){$('adm-body').innerHTML='<p>Gagal memuatkan data.</p>'}}
-    function showLogin(msg){clearInterval(timer);$('adm-body').innerHTML=`<div style="max-width:320px;margin:30px 0"><p>Akses admin sahaja.</p><div class="tools"><input id="pw" type="password" placeholder="Kata laluan admin"><button id="pwb">Masuk</button></div><p style="color:#a33">${msg||''}</p></div>`;
-      const go=()=>{try{sessionStorage.setItem('sj_adm',$('pw').value)}catch(e){}loadAdmin()};$('pwb').onclick=go;$('pw').onkeydown=e=>e.key==='Enter'&&go()}
+    async function refresh(){let r;
+      try{r=await fetch(API+'?action=list&key='+encodeURIComponent(key())).then(x=>x.json())}
+      catch(e){showLogin('Tidak dapat berhubung dengan skrip Google. Semak pautan /exec dan tetapan akses "Anyone".');return}
+      if(!r.ok){admKey='';try{sessionStorage.removeItem('sj_adm')}catch(e){}showLogin(r.error==='auth'?'Kata laluan salah.':'Ralat skrip: '+(r.error||'tidak diketahui'));return}
+      if(!Array.isArray(r.rows)){showLogin('Skrip belum dikemas kini. Deploy versi baharu di Apps Script.');return}
+      rows=r.rows;renderAdmin()}
+    function showLogin(msg){clearInterval(timer);
+      $('adm-body').innerHTML=`<div style="max-width:340px;margin:30px 0"><p>Akses admin sahaja.</p><div class="tools"><input id="pw" type="password" autocomplete="current-password" placeholder="Kata laluan admin"><button id="pwb" type="button">Masuk</button></div><label style="font-size:13px;color:#8a7774;cursor:pointer"><input type="checkbox" id="pws"> Tunjuk kata laluan</label><p id="pwm" style="color:#a33;font-size:14px">${msg||''}</p></div>`;
+      const pw=$('pw');pw.focus();$('pws').onchange=e=>pw.type=e.target.checked?'text':'password';
+      const go=()=>{const v=pw.value.trim();if(!v){$('pwm').textContent='Sila masukkan kata laluan.';return}admKey=v;try{sessionStorage.setItem('sj_adm',v)}catch(e){}loadAdmin()};
+      $('pwb').onclick=go;pw.onkeydown=e=>{if(e.key==='Enter')go()}}
     function loadAdmin(){if(API.startsWith('PASTE')){$('adm-body').innerHTML='<p>Pangkalan data belum disambungkan.</p>';return}
       if(!key())return showLogin();$('adm-body').innerHTML='<p>Memuatkan…</p>';refresh();clearInterval(timer);timer=setInterval(()=>{if(!busy&&document.activeElement?.id!=='q'&&key())refresh()},20000)}
     function route(){const a=location.hash==='#admin';$('admin').classList.toggle('hidden',!a);if(a&&!adminStarted){adminStarted=true;loadAdmin()}}

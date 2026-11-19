@@ -38,6 +38,8 @@ button{font:700 13px "DM Sans",sans-serif;cursor:pointer}
 .yes{background:#e8efdf;color:#52683d}.no{background:#f3e4dc;color:#8a5746}
 .delete{display:block;margin-top:9px;border:1px solid #d9b9a8;background:#fff8f4;color:#925e4b;border-radius:99px;padding:8px 12px;font-size:11px}
 .empty{text-align:center;padding:28px;color:var(--muted);background:#fffaf3;border:1px dashed var(--line);border-radius:14px;font:italic 18px "Cormorant Garamond",serif}
+.export-actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 18px}.export-actions button{font-size:11px;padding:9px 13px}
+@media print{body{background:#fff;padding:0}.wrap{box-shadow:none;border:0;min-height:0;padding:10px}.frame,.panel,.toolbar,.export-actions,.delete,.footer{display:none!important}#dashboard{display:block!important}.stats{margin:8px 0}.entry{break-inside:avoid;box-shadow:none}.entries{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .footer{text-align:center;font-size:11px;color:#a8926d;margin:28px 0 0;letter-spacing:.08em}
 @media(min-width:700px){.entries{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:420px){.stats{gap:7px}.stat{padding:13px 5px}.stat b{font-size:29px}.entry{padding:13px}.name{font-size:18px}}
@@ -68,6 +70,12 @@ button{font:700 13px "DM Sans",sans-serif;cursor:pointer}
 <div class="toolbar">
 <input id="search" type="search" placeholder="Cari nama tetamu...">
 <div class="actions" style="margin:0"><button class="secondary" id="refresh">Muat semula</button><button class="secondary" id="logout">Log keluar</button></div>
+</div>
+<div class="export-actions">
+<button class="secondary" id="downloadAll">Muat turun semua CSV</button>
+<button class="secondary" id="downloadYes">Muat turun hadir</button>
+<button class="secondary" id="downloadNo">Muat turun tidak hadir</button>
+<button class="secondary" id="printList">Cetak senarai</button>
 </div>
 <p class="count" id="countLabel"></p>
 <div class="entries" id="entries"><div class="empty">Memuatkan senarai RSVP...</div></div>
@@ -128,6 +136,22 @@ function render(){
     card.append(info,del);host.appendChild(card);
   });
 }
+function csvCell(value){
+  const s=String(value==null?"":value);
+  return '"'+s.replace(/"/g,'""')+'"';
+}
+function exportCsv(kind){
+  const data=kind==="yes"?rows.filter(r=>r.status==="Hadir"):kind==="no"?rows.filter(r=>r.status==="Tidak hadir"):rows;
+  const header=["Nama Tetamu","Kehadiran","Tarikh & Masa"];
+  const lines=[header,...data.map(r=>[r.name,r.status,r.at?new Date(r.at).toLocaleString("ms-MY"): ""])]
+    .map(row=>row.map(csvCell).join(","));
+  const blob=new Blob(["\\uFEFF"+lines.join("\\r\\n")],{type:"text/csv;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  const stamp=new Date().toISOString().slice(0,10);
+  a.href=url;a.download="SeJasmin-RSVP-"+kind+"-"+stamp+".csv";
+  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+}
 function removeRow(id,name){
   if(!confirm("Padam RSVP untuk "+name+"? Tindakan ini tidak boleh dibatalkan."))return;
   jsonp({action:"delete",key:adminKey,id},data=>{
@@ -152,6 +176,10 @@ $("togglePassword").addEventListener("click",()=>{
   $("togglePassword").textContent=showing?"Papar":"Sembunyi";
   $("togglePassword").setAttribute("aria-label",showing?"Papar kata laluan":"Sembunyikan kata laluan");
 });
+$("downloadAll").addEventListener("click",()=>exportCsv("all"));
+$("downloadYes").addEventListener("click",()=>exportCsv("yes"));
+$("downloadNo").addEventListener("click",()=>exportCsv("no"));
+$("printList").addEventListener("click",()=>window.print());
 $("refresh").addEventListener("click",load);
 $("logout").addEventListener("click",()=>{adminKey="";rows=[];$("dashboard").classList.add("hidden");$("loginPanel").classList.remove("hidden");message("loginMsg","Anda telah log keluar.");});
 $("search").addEventListener("input",render);

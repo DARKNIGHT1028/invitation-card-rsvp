@@ -9,7 +9,7 @@
 :root{color-scheme:light;--bg:#faf3ea;--card:#fdf8f1;--blush:#efe0c9;--rose:#cdb184;--dusty:#b8924f;--wine:#8f6d38;--gold:#b99a63;--ink:#5a4a36;--muted:#8c7a62;--line:#e6d6bd}
 @media(prefers-color-scheme:dark){:root{--bg:#faf3ea;--card:#fdf8f1;--ink:#5a4a36}}
 *{box-sizing:border-box}
-html{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);scroll-behavior:smooth;scroll-padding-bottom:88px}
+html.auto-scrolling{scroll-behavior:auto!important}\nhtml{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);scroll-behavior:smooth;scroll-padding-bottom:88px}
 body{margin:0;background:#e8d6c0;color:var(--ink);font-family:"DM Sans",sans-serif;display:flex;justify-content:center}
 button{font:inherit}
 .phone{width:100%;max-width:480px;min-height:100vh;background:var(--bg);position:relative;overflow:hidden;box-shadow:0 0 60px #6b4e2a33;isolation:isolate}
@@ -324,29 +324,48 @@ function openInv(){
 }
 $("open").addEventListener("click",openInv);$("envWrap").addEventListener("click",openInv);
 $("envWrap").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openInv()}});
-// auto-scroll: starts by itself and reaches the bottom over the length of the music.
-// Touching or scrolling pauses it; it carries on after a short idle.
-const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
-let auto=false,pos=0,last=0,idleT=null,finished=false,hintUntil=0;
-function setAuto(v){auto=v;last=0;if(v){pos=window.scrollY;requestAnimationFrame(step)}}
-function step(t){
-  if(!auto)return;
-  if(!last)last=t;
-  const dt=Math.min(t-last,50);last=t;
-  const max=document.documentElement.scrollHeight-innerHeight;
-  const dur=(isFinite(bg.duration)&&bg.duration>5?bg.duration:90)*1000;
-  if(!sheet.classList.contains("up")){pos+=max/dur*dt;window.scrollTo({top:Math.min(pos,max),behavior:"instant"})}
-  if(pos>=max-1){finished=true;setAuto(false);return}
-  requestAnimationFrame(step);
-}
-function pauseAuto(){
-  if(auto)setAuto(false);
-  clearTimeout(idleT);
-  finished=false;
-  if(!reduce)idleT=setTimeout(()=>setAuto(true),1000);
-}
-["wheel","touchstart","touchmove","pointerdown","keydown"].forEach(ev=>addEventListener(ev,e=>{if(!opened||(e.target.closest&&e.target.closest("#dock")))return;pauseAuto()},{passive:true}));
-// dock hide/show: swipe down on the bar to hide it; the strip then offers "Leret ke atas"
+// Auto-scroll: one animation loop, constant frame-rate-independent movement.
+ // Manual input pauses it; it resumes after the user has been idle briefly.
+ const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+ let auto=false,pos=0,last=0,idleT=null,finished=false,hintUntil=0,autoFrame=0,autoSpeed=0;
+ function setAuto(v){
+   if(reduce&&v)return;
+   if(!v){
+     auto=false;
+     if(autoFrame)cancelAnimationFrame(autoFrame);
+     autoFrame=0;last=0;
+     document.documentElement.classList.remove("auto-scrolling");
+     return;
+   }
+   if(auto||finished||sheet.classList.contains("up"))return;
+   const max=Math.max(0,document.documentElement.scrollHeight-innerHeight);
+   if(max<=1){finished=true;return;}
+   auto=true;pos=window.scrollY;last=0;
+   const dur=(Number.isFinite(bg.duration)&&bg.duration>5?bg.duration:90)*1000;
+   autoSpeed=max/dur;
+   document.documentElement.classList.add("auto-scrolling");
+   autoFrame=requestAnimationFrame(step);
+ }
+ function step(t){
+   if(!auto)return;
+   if(!last)last=t;
+   const dt=Math.max(0,Math.min(t-last,100));last=t;
+   const max=Math.max(0,document.documentElement.scrollHeight-innerHeight);
+   if(sheet.classList.contains("up")){setAuto(false);return;}
+   pos=Math.min(max,pos+autoSpeed*dt);
+   window.scrollTo(0,pos);
+   if(pos>=max-1){
+     finished=true;setAuto(false);return;
+   }
+   autoFrame=requestAnimationFrame(step);
+ }
+ function pauseAuto(){
+   if(auto)setAuto(false);
+   clearTimeout(idleT);
+   finished=false;
+   if(!reduce)idleT=setTimeout(()=>setAuto(true),1200);
+ }
+ // dock hide/show: swipe down on the bar to hide it; the strip then offers "Leret ke atas"
 (function(){
   const dock=$("dock"),strip=$("strip"),tab=$("dTab");let y0=null;
   function setHide(h){dock.classList.toggle("hide",h);strip.classList.toggle("show",h)}

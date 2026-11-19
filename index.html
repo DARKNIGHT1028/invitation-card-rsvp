@@ -304,10 +304,10 @@ $("addcalfile").addEventListener("click",e=>{
     "DTSTAMP:"+new Date().toISOString().replace(/[-:]/g,"").replace(/\\.\\d{3}/,""),
     "DTSTART:20261129T043000Z","DTEND:20261129T080000Z",
     "SUMMARY:Majlis Hi-Tea SeJasmin",
-    "LOCATION:Movenick Hotel and Convention Centre KLIA\\, Sepang",
+    "LOCATION:Movenpick Hotel and Convention Centre KLIA\\, Sepang",
     "DESCRIPTION:Majlis Hi-Tea SeJasmin",
     "END:VEVENT","END:VCALENDAR"
-  ].join("\\r\\n");
+  ].join("\r\n");
   const blob=new Blob([ics],{type:"text/calendar;charset=utf-8"});
   const url=URL.createObjectURL(blob);
   const link=document.createElement("a");

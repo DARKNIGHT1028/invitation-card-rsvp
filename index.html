@@ -421,7 +421,7 @@ $("go").addEventListener("click",()=>{
   };
   script.onerror=()=>{
     finish();
-    $("msg").textContent="Sambungan gagal. Sila semak internet anda dan cuba lagi.";
+    $("msg").textContent="Permintaan RSVP telah sampai ke Google, tetapi pengesahan tidak dapat diterima. Semak senarai RSVP dahulu sebelum menghantar semula supaya rekod tidak berganda.";
   };
   timeout=setTimeout(()=>{
     finish();

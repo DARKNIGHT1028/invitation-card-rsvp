@@ -374,8 +374,61 @@ sheet.addEventListener("click",e=>{if(e.target===sheet)show(false)});
 $("dMap").addEventListener("click",()=>document.querySelector(".info").scrollIntoView({behavior:"smooth",block:"center"}));
 function ch(v){sel=v;$("by").classList.toggle("sel",v==="Hadir");$("bn").classList.toggle("sel",v==="Tidak hadir")}
 $("by").addEventListener("click",()=>ch("Hadir"));$("bn").addEventListener("click",()=>ch("Tidak hadir"));
+// Google Sheets RSVP — Apps Script JSONP endpoint
+const RSVP_API="https://script.google.com/macros/s/AKfycbzw0yRRnGsCyMWPH6YsS-zpG6VNcIS_jbft4jUZh57J6zLe3vMD-psrANHEkwUAxEUs/exec";
+let rsvpSending=false;
 $("go").addEventListener("click",()=>{
-  $("msg").textContent=(!$("nm").value.trim()||!sel)?"Sila isi nama dan pilih kehadiran.":"Ini ialah pratonton reka bentuk. Sambungan RSVP sebenar akan dikekalkan apabila draf diluluskan.";
+  const name=$("nm").value.trim();
+  if(!name||!sel){
+    $("msg").textContent="Sila isi nama dan pilih kehadiran.";
+    return;
+  }
+  if(rsvpSending)return;
+  rsvpSending=true;
+  const btn=$("go");
+  btn.disabled=true;
+  btn.textContent="Menghantar...";
+  $("msg").textContent="Sedang menghantar RSVP anda...";
+  const callback="sejasminRsvp_"+Date.now()+"_"+Math.random().toString(36).slice(2);
+  const params=new URLSearchParams({
+    action:"rsvp",
+    name:name,
+    status:sel,
+    id:"guest-"+Date.now()+"-"+Math.random().toString(36).slice(2,9),
+    callback:callback
+  });
+  const script=document.createElement("script");
+  let timeout;
+  function finish(){
+    clearTimeout(timeout);
+    delete window[callback];
+    script.remove();
+    rsvpSending=false;
+    btn.disabled=false;
+    btn.textContent="Hantar RSVP";
+  }
+  window[callback]=(result)=>{
+    finish();
+    if(result&&result.ok){
+      $("msg").textContent="Terima kasih! RSVP anda telah berjaya direkodkan.";
+      $("nm").value="";
+      sel=null;
+      $("by").classList.remove("sel");
+      $("bn").classList.remove("sel");
+    }else{
+      $("msg").textContent="Maaf, RSVP tidak berjaya disimpan. Sila cuba lagi.";
+    }
+  };
+  script.onerror=()=>{
+    finish();
+    $("msg").textContent="Sambungan gagal. Sila semak internet anda dan cuba lagi.";
+  };
+  timeout=setTimeout(()=>{
+    finish();
+    $("msg").textContent="Sambungan mengambil masa terlalu lama. Sila cuba lagi.";
+  },15000);
+  script.src=RSVP_API+"?"+params.toString();
+  document.head.appendChild(script);
 });
 </script>
 </body>

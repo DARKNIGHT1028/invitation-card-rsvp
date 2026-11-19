@@ -314,7 +314,7 @@ function openInv(){
   $("envelope").classList.add("open");$("envWrap").classList.add("opened");
   $("open").disabled=true;$("open").textContent="Jemputan dibuka";
   bg.volume=.45;bg.play().catch(()=>{});upd();
-  setTimeout(()=>{$("cover").classList.add("gone");document.body.classList.remove("lock");window.scrollTo(0,0);$("dock").classList.add("show");$("swipe").classList.add("show");reveal();setTimeout(()=>{$("cover").style.display="none"},1200);if(!matchMedia("(prefers-reduced-motion: reduce)").matches)setTimeout(()=>{setAuto(true)},2500)},1500);
+  setTimeout(()=>{$("cover").classList.add("gone");document.body.classList.remove("lock");window.scrollTo(0,0);$("dock").classList.add("show");$("swipe").classList.add("show");hintUntil=Date.now()+7000;reveal();setTimeout(()=>{$("cover").style.display="none"},1200);if(!matchMedia("(prefers-reduced-motion: reduce)").matches)setTimeout(()=>{setAuto(true)},7000)},1500);
   if(!matchMedia("(prefers-reduced-motion: reduce)").matches)for(let i=0;i<14;i++){
     const p=document.createElement("span");p.className="petal";p.textContent=i%3?"❀":"✿";
     p.style.left=Math.random()*100+"vw";p.style.fontSize=(10+Math.random()*12)+"px";
@@ -327,7 +327,7 @@ $("envWrap").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.p
 // auto-scroll: starts by itself and reaches the bottom over the length of the music.
 // Touching or scrolling pauses it; it carries on after a short idle.
 const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
-let auto=false,pos=0,last=0,idleT=null,finished=false;
+let auto=false,pos=0,last=0,idleT=null,finished=false,hintUntil=0;
 function setAuto(v){auto=v;last=0;if(v){pos=window.scrollY;requestAnimationFrame(step)}}
 function step(t){
   if(!auto)return;
@@ -360,7 +360,7 @@ function pauseAuto(){
 })();
 // swipe-up hint: visible at the top, fades once the page moves
 addEventListener("scroll",()=>{
-  $("swipe").classList.toggle("show",opened&&scrollY<80);
+  $("swipe").classList.toggle("show",opened&&(Date.now()<hintUntil||scrollY<80));
   if(opened)reveal();
 },{passive:true});
 addEventListener("resize",()=>{if(opened)reveal()});

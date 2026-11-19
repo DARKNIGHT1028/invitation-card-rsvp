@@ -375,7 +375,7 @@ $("dMap").addEventListener("click",()=>document.querySelector(".info").scrollInt
 function ch(v){sel=v;$("by").classList.toggle("sel",v==="Hadir");$("bn").classList.toggle("sel",v==="Tidak hadir")}
 $("by").addEventListener("click",()=>ch("Hadir"));$("bn").addEventListener("click",()=>ch("Tidak hadir"));
 // Google Sheets RSVP — Apps Script JSONP endpoint
-const RSVP_API="https://script.google.com/macros/s/AKfycbzw0yRRnGsCyMWPH6YsS-zpG6VNcIS_jbft4jUZh57J6zLe3vMD-psrANHEkwUAxEUs/exec";
+const RSVP_API="https://script.google.com/macros/s/AKfycbxULNBgYDDGvSf1IO93dyaxqiJPdmpKGY5C8B3jUmTL6zYWjUNbOieayMkI5Om4sJwF/exec";
 let rsvpSending=false;
 $("go").addEventListener("click",()=>{
   const name=$("nm").value.trim();

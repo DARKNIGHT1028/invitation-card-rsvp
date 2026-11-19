@@ -221,7 +221,7 @@ h2.h{font:500 34px/1.1 "Cormorant Garamond",serif;color:var(--wine);margin:0 0 6
   <h2 class="h">Tarikh Majlis</h2>
   <p class="lead">Ahad, 29 November 2026</p>
   <div class="cal" id="cal"></div>
-  <a class="pill" style="margin-top:18px" href="#" id="addcal">Simpan dalam kalendar</a>
+  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px"><a class="pill" href="#" id="addcal">Google Calendar</a><a class="pill" href="#" id="addcalfile">iPhone / Android Calendar</a></div>
 </section>
 
 <section class="alt">
@@ -289,10 +289,31 @@ function tick(){
   document.querySelectorAll("#cd b").forEach((e,i)=>e.textContent=v[i]);
 }
 tick();setInterval(tick,1000);
-// add to calendar
+// Google Calendar
 $("addcal").addEventListener("click",e=>{
   e.preventDefault();
   window.open("https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent("Majlis Hi-Tea SeJasmin")+"&dates=20261129T043000Z/20261129T080000Z&location="+encodeURIComponent("Movenpick Hotel and Convention Centre KLIA, Sepang"),"_blank","noopener");
+});
+// Universal iCalendar file for Apple Calendar and Android calendar apps
+$("addcalfile").addEventListener("click",e=>{
+  e.preventDefault();
+  const ics=[
+    "BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//SeJasmin//Majlis Hi-Tea//MS",
+    "CALSCALE:GREGORIAN","METHOD:PUBLISH","BEGIN:VEVENT",
+    "UID:sejasmin-majlis-hitea-20261129@sejasmin",
+    "DTSTAMP:"+new Date().toISOString().replace(/[-:]/g,"").replace(/\\.\\d{3}/,""),
+    "DTSTART:20261129T043000Z","DTEND:20261129T080000Z",
+    "SUMMARY:Majlis Hi-Tea SeJasmin",
+    "LOCATION:Movenick Hotel and Convention Centre KLIA\\, Sepang",
+    "DESCRIPTION:Majlis Hi-Tea SeJasmin",
+    "END:VEVENT","END:VCALENDAR"
+  ].join("\\r\\n");
+  const blob=new Blob([ics],{type:"text/calendar;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement("a");
+  link.href=url;link.download="SeJasmin-Majlis-Hi-Tea.ics";
+  document.body.appendChild(link);link.click();link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
 });
 // music
 const bg=$("bg");

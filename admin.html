@@ -145,7 +145,7 @@ function exportCsv(kind){
   const header=["Nama Tetamu","Kehadiran","Tarikh & Masa"];
   const lines=[header,...data.map(r=>[r.name,r.status,r.at?new Date(r.at).toLocaleString("ms-MY"): ""])]
     .map(row=>row.map(csvCell).join(","));
-  const blob=new Blob(["\\uFEFF"+lines.join("\\r\\n")],{type:"text/csv;charset=utf-8"});
+  const blob=new Blob(["\uFEFF"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
   const url=URL.createObjectURL(blob);
   const a=document.createElement("a");
   const stamp=new Date().toISOString().slice(0,10);

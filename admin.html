@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin RSVP | SeJasmin</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@400;500;700&family=Parisienne&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light;--bg:#faf3ea;--card:#fdf8f1;--rose:#cdb184;--dusty:#b8924f;--wine:#8f6d38;--gold:#b99a63;--ink:#5a4a36;--muted:#8c7a62;--line:#e6d6bd}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#e8d6c0;color:var(--ink);font-family:"DM Sans",sans-serif;padding:28px 14px 50px}
+.wrap{max-width:980px;margin:auto;background:var(--bg);min-height:calc(100vh - 56px);padding:clamp(22px,5vw,48px);position:relative;overflow:hidden;box-shadow:0 0 60px #6b4e2a22;border:1px solid #e2d1b6}
+.frame{position:absolute;inset:12px;border:1px solid #d8c39d;pointer-events:none}.frame:after{content:"";position:absolute;inset:5px;border:1px solid #eadfc8}
+.content{position:relative;z-index:1}.script{font:36px "Parisienne",cursive;color:var(--dusty);text-align:center;margin:0 0 2px}
+h1{font:500 clamp(34px,6vw,48px)/1.05 "Cormorant Garamond",serif;color:var(--wine);text-align:center;margin:0}
+.sub{text-align:center;color:var(--muted);font-size:12px;letter-spacing:.12em;text-transform:uppercase;margin:10px 0 24px}
+.orn{text-align:center;color:var(--gold);letter-spacing:.5em;margin:16px 0 25px}
+.panel,.stat,.entry{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 5px 18px #6b4e2a0c}
+.panel{padding:20px;max-width:460px;margin:0 auto 22px}
+label{display:block;font-size:12px;font-weight:700;color:var(--wine);margin:0 0 7px}
+input{width:100%;border:1px solid var(--line);border-radius:10px;background:#fffdf8;padding:13px 14px;color:var(--ink);font:14px "DM Sans",sans-serif;outline:none}
+input:focus{border-color:var(--gold);box-shadow:0 0 0 3px #b8924f22}
+button{font:700 13px "DM Sans",sans-serif;cursor:pointer}
+.btn{border:1px solid var(--gold);border-radius:99px;padding:12px 22px;background:linear-gradient(135deg,#b8924f,#8f6d38);color:#fffaf0;box-shadow:0 6px 16px #8f6d382b}
+.btn:disabled{opacity:.55;cursor:wait}.secondary{border:1px solid var(--gold);border-radius:99px;padding:10px 16px;background:#fff;color:var(--wine)}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:13px}
+.msg{font-size:12px;line-height:1.5;color:var(--muted);margin-top:12px;min-height:18px}
+.hidden{display:none!important}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:22px 0}
+.stat{padding:17px 12px;text-align:center}.stat b{display:block;font:600 34px "Cormorant Garamond",serif;color:var(--wine)}.stat span{font-size:11px;color:var(--muted);letter-spacing:.04em}
+.toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:22px 0 13px}.toolbar input{max-width:340px}
+.count{font-size:12px;color:var(--muted)}
+.entries{display:grid;gap:10px}
+.entry{padding:15px 16px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center}
+.name{font:600 20px "Cormorant Garamond",serif;color:var(--wine);overflow-wrap:anywhere}
+.meta{font-size:11px;color:var(--muted);margin-top:4px}
+.status{display:inline-block;border-radius:99px;padding:6px 10px;font-size:11px;font-weight:700;margin-top:8px}
+.yes{background:#e8efdf;color:#52683d}.no{background:#f3e4dc;color:#8a5746}
+.delete{display:block;margin-top:9px;border:1px solid #d9b9a8;background:#fff8f4;color:#925e4b;border-radius:99px;padding:8px 12px;font-size:11px}
+.empty{text-align:center;padding:28px;color:var(--muted);background:#fffaf3;border:1px dashed var(--line);border-radius:14px;font:italic 18px "Cormorant Garamond",serif}
+.footer{text-align:center;font-size:11px;color:#a8926d;margin:28px 0 0;letter-spacing:.08em}
+@media(min-width:700px){.entries{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:420px){.stats{gap:7px}.stat{padding:13px 5px}.stat b{font-size:29px}.entry{padding:13px}.name{font-size:18px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<div class="frame"></div>
+<div class="content">
+<p class="script">SeJasmin</p>
+<h1>RSVP Guest List</h1>
+<p class="sub">Admin dashboard · Majlis Hi-Tea</p>
+<div class="orn">✦ ✧ ✦</div>
+
+<section class="panel" id="loginPanel">
+<label for="key">Admin access key</label>
+<input id="key" type="password" autocomplete="current-password" placeholder="Masukkan admin key">
+<div class="actions"><button class="btn" id="login">Log masuk</button></div>
+<div class="msg" id="loginMsg" role="status">Masukkan admin key yang telah ditetapkan dalam Google Apps Script.</div>
+</section>
+
+<section id="dashboard" class="hidden">
+<div class="stats">
+<div class="stat"><b id="total">0</b><span>JUMLAH RSVP</span></div>
+<div class="stat"><b id="yesCount">0</b><span>HADIR</span></div>
+<div class="stat"><b id="noCount">0</b><span>TIDAK HADIR</span></div>
+</div>
+<div class="toolbar">
+<input id="search" type="search" placeholder="Cari nama tetamu...">
+<div class="actions" style="margin:0"><button class="secondary" id="refresh">Muat semula</button><button class="secondary" id="logout">Log keluar</button></div>
+</div>
+<p class="count" id="countLabel"></p>
+<div class="entries" id="entries"><div class="empty">Memuatkan senarai RSVP...</div></div>
+</section>
+<p class="footer">SERUMPUN KASIH · SEJASMIN</p>
+</div>
+</main>
+<script>
+const API="https://script.google.com/macros/s/AKfycbzw0yRRnGsCyMWPH6YsS-zpG6VNcIS_jbft4jUZh57J6zLe3vMD-psrANHEkwUAxEUs/exec";
+const $=id=>document.getElementById(id);
+let adminKey="",rows=[],busy=false,seq=0;
+function jsonp(params,done){
+  const cb="sejasminAdmin_"+(++seq)+"_"+Date.now();
+  const script=document.createElement("script");
+  let ended=false;
+  const finish=(data)=>{
+    if(ended)return;ended=true;clearTimeout(timer);delete window[cb];script.remove();done(data);
+  };
+  window[cb]=finish;
+  script.onerror=()=>finish({ok:false,error:"network"});
+  const timer=setTimeout(()=>finish({ok:false,error:"timeout"}),16000);
+  const q=new URLSearchParams({...params,callback:cb});
+  script.src=API+"?"+q.toString();
+  document.head.appendChild(script);
+}
+function message(el,text){$(el).textContent=text}
+function load(){
+  if(busy)return;busy=true;$("refresh").disabled=true;
+  message("countLabel","Memuatkan data RSVP...");
+  jsonp({action:"list",key:adminKey},data=>{
+    busy=false;$("refresh").disabled=false;
+    if(!data||!data.ok){
+      if(data&&data.error==="auth"){adminKey="";$("dashboard").classList.add("hidden");$("loginPanel").classList.remove("hidden");message("loginMsg","Admin key tidak sah atau belum ditetapkan. Sila semak Script Properties.");}
+      else message("countLabel","Tidak dapat memuatkan data. Sila cuba lagi.");
+      return;
+    }
+    rows=Array.isArray(data.rows)?data.rows:[];
+    render();
+  });
+}
+function render(){
+  const yes=rows.filter(r=>r.status==="Hadir").length,no=rows.filter(r=>r.status==="Tidak hadir").length;
+  $("total").textContent=rows.length;$("yesCount").textContent=yes;$("noCount").textContent=no;
+  const term=$("search").value.trim().toLocaleLowerCase();
+  const filtered=rows.filter(r=>(r.name||"").toLocaleLowerCase().includes(term));
+  message("countLabel",filtered.length+" rekod dipaparkan");
+  const host=$("entries");host.replaceChildren();
+  if(!filtered.length){const empty=document.createElement("div");empty.className="empty";empty.textContent=rows.length?"Tiada nama sepadan dengan carian.":"Belum ada RSVP direkodkan.";host.appendChild(empty);return;}
+  filtered.forEach(r=>{
+    const card=document.createElement("article");card.className="entry";
+    const info=document.createElement("div");
+    const name=document.createElement("div");name.className="name";name.textContent=r.name||"Tanpa nama";
+    const meta=document.createElement("div");meta.className="meta";meta.textContent=r.at?new Date(r.at).toLocaleString("ms-MY",{dateStyle:"medium",timeStyle:"short"}):"Tarikh tidak tersedia";
+    const status=document.createElement("span");status.className="status "+(r.status==="Hadir"?"yes":"no");status.textContent=r.status||"Status tidak diketahui";
+    info.append(name,meta,status);
+    const del=document.createElement("button");del.className="delete";del.textContent="Padam";
+    del.addEventListener("click",()=>removeRow(r.id,r.name));
+    card.append(info,del);host.appendChild(card);
+  });
+}
+function removeRow(id,name){
+  if(!confirm("Padam RSVP untuk "+name+"? Tindakan ini tidak boleh dibatalkan."))return;
+  jsonp({action:"delete",key:adminKey,id},data=>{
+    if(data&&data.ok){rows=rows.filter(r=>r.id!==id);render();}
+    else alert("Rekod tidak dapat dipadam. Sila muat semula dan cuba lagi.");
+  });
+}
+$("login").addEventListener("click",()=>{
+  const key=$("key").value.trim();
+  if(!key){message("loginMsg","Sila masukkan admin key.");return;}
+  adminKey=key;$("login").disabled=true;message("loginMsg","Mengesahkan akses...");
+  jsonp({action:"list",key},data=>{
+    $("login").disabled=false;
+    if(data&&data.ok){$("loginPanel").classList.add("hidden");$("dashboard").classList.remove("hidden");$("key").value="";rows=Array.isArray(data.rows)?data.rows:[];render();}
+    else{adminKey="";message("loginMsg",data&&data.error==="auth"?"Admin key tidak sah.":"Sambungan gagal. Sila cuba lagi.");}
+  });
+});
+$("refresh").addEventListener("click",load);
+$("logout").addEventListener("click",()=>{adminKey="";rows=[];$("dashboard").classList.add("hidden");$("loginPanel").classList.remove("hidden");message("loginMsg","Anda telah log keluar.");});
+$("search").addEventListener("input",render);
+</script>
+</body>
+</html>

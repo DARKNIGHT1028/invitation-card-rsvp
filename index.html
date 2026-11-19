@@ -336,7 +336,7 @@ function openInv(){
   $("envelope").classList.add("open");$("envWrap").classList.add("opened");
   $("open").disabled=true;$("open").textContent="Jemputan dibuka";
   bg.volume=.45;bg.play().catch(()=>{});upd();
-  setTimeout(()=>{$("cover").classList.add("gone");document.body.classList.remove("lock");window.scrollTo(0,0);$("dock").classList.add("show");$("swipe").classList.add("show");hintUntil=Date.now()+7000;reveal();setTimeout(()=>{$("cover").style.display="none"},1200);if(!matchMedia("(prefers-reduced-motion: reduce)").matches)setTimeout(()=>{setAuto(true)},1800)},1500);
+  setTimeout(()=>{$("cover").classList.add("gone");document.body.classList.remove("lock");window.scrollTo(0,0);$("strip").classList.add("show");$("swipe").classList.add("show");hintUntil=Date.now()+7000;reveal();setTimeout(()=>{$("cover").style.display="none"},1200);if(!matchMedia("(prefers-reduced-motion: reduce)").matches)setTimeout(()=>{setAuto(true)},1800)},1500);
   if(!matchMedia("(prefers-reduced-motion: reduce)").matches)for(let i=0;i<14;i++){
     const p=document.createElement("span");p.className="petal";p.textContent=i%3?"❀":"✿";
     p.style.left=Math.random()*100+"vw";p.style.fontSize=(10+Math.random()*12)+"px";
@@ -407,7 +407,7 @@ addEventListener("keydown",e=>{
 // dock hide/show: swipe down on the bar to hide it; the strip then offers "Leret ke atas"
 (function(){
   const dock=$("dock"),strip=$("strip"),tab=$("dTab");let y0=null;
-  function setHide(h){dock.classList.toggle("hide",h);strip.classList.toggle("show",h)}
+  function setHide(h){dock.classList.add("show");dock.classList.toggle("hide",h);strip.classList.toggle("show",h)}
   tab.addEventListener("click",()=>setHide(true));
   dock.addEventListener("touchstart",e=>{y0=e.touches[0].clientY},{passive:true});
   dock.addEventListener("touchend",e=>{if(y0===null)return;const dy=e.changedTouches[0].clientY-y0;y0=null;if(dy>28)setHide(true)},{passive:true});

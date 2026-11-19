@@ -9,10 +9,10 @@
 :root{color-scheme:light;--bg:#faf3ea;--card:#fdf8f1;--blush:#efe0c9;--rose:#cdb184;--dusty:#b8924f;--wine:#8f6d38;--gold:#b99a63;--ink:#5a4a36;--muted:#8c7a62;--line:#e6d6bd}
 @media(prefers-color-scheme:dark){:root{--bg:#faf3ea;--card:#fdf8f1;--ink:#5a4a36}}
 *{box-sizing:border-box}
-html.auto-scrolling{scroll-behavior:auto!important}\nhtml{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);scroll-behavior:smooth;scroll-padding-bottom:88px}
-body{margin:0;background:#e8d6c0;color:var(--ink);font-family:"DM Sans",sans-serif;display:flex;justify-content:center}
+html{box-sizing:border-box;height:auto;overflow-x:hidden;overflow-y:scroll;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);scroll-behavior:auto;scroll-padding-bottom:88px;-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100%;background:#e8d6c0;color:var(--ink);font-family:"DM Sans",sans-serif;overflow-x:hidden;overflow-y:visible;touch-action:pan-y}
 button{font:inherit}
-.phone{width:100%;max-width:480px;min-height:100vh;background:var(--bg);position:relative;overflow:hidden;box-shadow:0 0 60px #6b4e2a33;isolation:isolate}
+.phone{width:100%;max-width:480px;min-height:100vh;min-height:100dvh;margin:0 auto;background:var(--bg);position:relative;overflow:visible;box-shadow:0 0 60px #6b4e2a33;isolation:isolate}
 .fl{position:absolute;color:var(--rose);line-height:1;pointer-events:none;user-select:none;transform:rotate(var(--r,0deg));animation:sway 9s ease-in-out infinite}
 @keyframes sway{0%,100%{transform:rotate(var(--r)) translateY(0)}50%{transform:rotate(calc(var(--r) + 7deg)) translateY(10px)}}
 .fl.a{font-size:150px;opacity:.4}.fl.b{font-size:96px;opacity:.3}
@@ -31,7 +31,8 @@ button{font:inherit}
 .serif{font-family:"Cormorant Garamond",serif}
 
 /* cover */
-body.lock .phone{height:100vh;min-height:0;overflow:hidden}
+body.lock{overflow:hidden;height:100vh;height:100dvh;touch-action:none}
+body.lock .phone{height:100vh;height:100dvh;min-height:0;overflow:hidden}
 #cover{position:fixed;top:0;bottom:0;left:50%;width:100%;max-width:480px;transform:translate3d(-50%,0,0);overflow:hidden;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;background:linear-gradient(180deg,#fbf1e2,#f4e6d2 60%,#ecd9bd);transition:transform 1.15s cubic-bezier(.22,.72,.2,1);will-change:transform;backface-visibility:hidden}
 #cover.gone{transform:translate3d(-50%,-100%,0)}
 #cover>*{position:relative}
@@ -314,7 +315,7 @@ function openInv(){
   $("envelope").classList.add("open");$("envWrap").classList.add("opened");
   $("open").disabled=true;$("open").textContent="Jemputan dibuka";
   bg.volume=.45;bg.play().catch(()=>{});upd();
-  setTimeout(()=>{$("cover").classList.add("gone");document.body.classList.remove("lock");window.scrollTo(0,0);$("dock").classList.add("show");$("swipe").classList.add("show");hintUntil=Date.now()+7000;reveal();setTimeout(()=>{$("cover").style.display="none"},1200);if(!matchMedia("(prefers-reduced-motion: reduce)").matches)setTimeout(()=>{setAuto(true)},7000)},1500);
+  setTimeout(()=>{$("cover").classList.add("gone");document.body.classList.remove("lock");window.scrollTo(0,0);$("dock").classList.add("show");$("swipe").classList.add("show");hintUntil=Date.now()+7000;reveal();setTimeout(()=>{$("cover").style.display="none"},1200);if(!matchMedia("(prefers-reduced-motion: reduce)").matches)setTimeout(()=>{setAuto(true)},1800)},1500);
   if(!matchMedia("(prefers-reduced-motion: reduce)").matches)for(let i=0;i<14;i++){
     const p=document.createElement("span");p.className="petal";p.textContent=i%3?"❀":"✿";
     p.style.left=Math.random()*100+"vw";p.style.fontSize=(10+Math.random()*12)+"px";
@@ -324,48 +325,65 @@ function openInv(){
 }
 $("open").addEventListener("click",openInv);$("envWrap").addEventListener("click",openInv);
 $("envWrap").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openInv()}});
-// Auto-scroll: one animation loop, constant frame-rate-independent movement.
- // Manual input pauses it; it resumes after the user has been idle briefly.
- const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
- let auto=false,pos=0,last=0,idleT=null,finished=false,hintUntil=0,autoFrame=0,autoSpeed=0;
- function setAuto(v){
-   if(reduce&&v)return;
-   if(!v){
-     auto=false;
-     if(autoFrame)cancelAnimationFrame(autoFrame);
-     autoFrame=0;last=0;
-     document.documentElement.classList.remove("auto-scrolling");
-     return;
-   }
-   if(auto||finished||sheet.classList.contains("up"))return;
-   const max=Math.max(0,document.documentElement.scrollHeight-innerHeight);
-   if(max<=1){finished=true;return;}
-   auto=true;pos=window.scrollY;last=0;
-   const dur=(Number.isFinite(bg.duration)&&bg.duration>5?bg.duration:90)*1000;
-   autoSpeed=max/dur;
-   document.documentElement.classList.add("auto-scrolling");
-   autoFrame=requestAnimationFrame(step);
- }
- function step(t){
-   if(!auto)return;
-   if(!last)last=t;
-   const dt=Math.max(0,Math.min(t-last,100));last=t;
-   const max=Math.max(0,document.documentElement.scrollHeight-innerHeight);
-   if(sheet.classList.contains("up")){setAuto(false);return;}
-   pos=Math.min(max,pos+autoSpeed*dt);
-   window.scrollTo(0,pos);
-   if(pos>=max-1){
-     finished=true;setAuto(false);return;
-   }
-   autoFrame=requestAnimationFrame(step);
- }
- function pauseAuto(){
-   if(auto)setAuto(false);
-   clearTimeout(idleT);
-   finished=false;
-   if(!reduce)idleT=setTimeout(()=>setAuto(true),1200);
- }
- // dock hide/show: swipe down on the bar to hide it; the strip then offers "Leret ke atas"
+const sheet=$("sheet");
+// Auto-scroll: ~1 screen every 8s with ease-in. Pause only on a real swipe/wheel.
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const PX_PER_SEC=96;
+let auto=false,pos=0,last=0,startT=0,idleT=null,finished=false,hintUntil=0,autoFrame=0,touchY0=null;
+function scroller(){return document.scrollingElement||document.documentElement}
+function maxScroll(){return Math.max(0,scroller().scrollHeight-window.innerHeight)}
+function setAuto(v){
+  if(reduce&&v)return;
+  if(!v){
+    auto=false;
+    if(autoFrame)cancelAnimationFrame(autoFrame);
+    autoFrame=0;last=0;
+    return;
+  }
+  if(auto||finished||!opened||sheet.classList.contains("up"))return;
+  const max=maxScroll();
+  if(max<=1||scroller().scrollTop>=max-2){finished=true;return;}
+  auto=true;pos=scroller().scrollTop;last=0;startT=0;
+  autoFrame=requestAnimationFrame(step);
+}
+function step(t){
+  if(!auto)return;
+  if(!last){last=t;startT=t}
+  const dt=Math.max(0,Math.min(t-last,34));last=t;
+  const max=maxScroll();
+  if(sheet.classList.contains("up")||max<=1){setAuto(false);return;}
+  const ease=Math.min(1,(t-startT)/800);
+  const k=ease*ease*(3-2*ease);
+  pos=Math.min(max,pos+PX_PER_SEC*(dt/1000)*(0.4+0.6*k));
+  scroller().scrollTop=pos;
+  if(pos>=max-1){finished=true;setAuto(false);return;}
+  autoFrame=requestAnimationFrame(step);
+}
+function pauseAuto(){
+  if(!opened)return;
+  if(auto)setAuto(false);
+  clearTimeout(idleT);
+  finished=false;
+  if(!reduce&&!sheet.classList.contains("up"))idleT=setTimeout(()=>setAuto(true),1800);
+}
+function isChromeUI(el){return el&&el.closest&&el.closest("#dock,#strip,#sheet,#cover")}
+addEventListener("wheel",e=>{
+  if(!opened||isChromeUI(e.target)||!e.deltaY)return;
+  pauseAuto();
+},{passive:true});
+addEventListener("touchstart",e=>{
+  if(!opened||isChromeUI(e.target)){touchY0=null;return;}
+  touchY0=e.touches[0].clientY;
+},{passive:true});
+addEventListener("touchmove",e=>{
+  if(touchY0==null)return;
+  if(Math.abs(e.touches[0].clientY-touchY0)>12){pauseAuto();touchY0=null;}
+},{passive:true});
+addEventListener("keydown",e=>{
+  if(!opened||!["ArrowDown","ArrowUp","PageDown","PageUp","Home","End"," "].includes(e.key))return;
+  pauseAuto();
+});
+// dock hide/show: swipe down on the bar to hide it; the strip then offers "Leret ke atas"
 (function(){
   const dock=$("dock"),strip=$("strip"),tab=$("dTab");let y0=null;
   function setHide(h){dock.classList.toggle("hide",h);strip.classList.toggle("show",h)}
@@ -385,15 +403,19 @@ addEventListener("scroll",()=>{
 addEventListener("resize",()=>{if(opened)reveal()});
 // rsvp
 let sel=null;
-const sheet=$("sheet");
-function show(v){sheet.classList.toggle("up",v);sheet.setAttribute("aria-hidden",String(!v));document.body.style.overflow=v?"hidden":"";if(v)setTimeout(()=>$("nm").focus({preventScroll:true}),180)}
+function show(v){
+  sheet.classList.toggle("up",v);
+  sheet.setAttribute("aria-hidden",String(!v));
+  document.body.style.overflow=v?"hidden":"";
+  if(v){setAuto(false);clearTimeout(idleT);setTimeout(()=>$("nm").focus({preventScroll:true}),180)}
+  else if(opened)pauseAuto();
+}
 ["dRsvp","rsvpBtn2"].forEach(i=>$(i).addEventListener("click",()=>show(true)));
 $("cl").addEventListener("click",()=>show(false));
 sheet.addEventListener("click",e=>{if(e.target===sheet)show(false)});
-$("dMap").addEventListener("click",()=>document.querySelector(".info").scrollIntoView({behavior:"smooth",block:"center"}));
+$("dMap").addEventListener("click",()=>{pauseAuto();document.querySelector(".info").scrollIntoView({behavior:"smooth",block:"center"})});
 function ch(v){sel=v;$("by").classList.toggle("sel",v==="Hadir");$("bn").classList.toggle("sel",v==="Tidak hadir")}
 $("by").addEventListener("click",()=>ch("Hadir"));$("bn").addEventListener("click",()=>ch("Tidak hadir"));
-// Google Sheets RSVP — Apps Script JSONP endpoint
 const RSVP_API="https://script.google.com/macros/s/AKfycbxULNBgYDDGvSf1IO93dyaxqiJPdmpKGY5C8B3jUmTL6zYWjUNbOieayMkI5Om4sJwF/exec";
 let rsvpSending=false;
 $("go").addEventListener("click",()=>{

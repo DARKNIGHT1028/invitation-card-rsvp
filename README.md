@@ -25,8 +25,9 @@ The endpoint is public so guests can submit. Keep the Sheet private and do not s
 In `index.html`, replace `PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE` with the deployed Apps Script `/exec` URL.
 
 ## 4. Publish with GitHub Pages
-In repository **Settings → Pages**, choose **Deploy from a branch**, select `main` and `/(root)`, then save. The site should publish at:
-https://darknight1028.github.io/invitation-card-rsvp/
+In repository **Settings → Pages**, choose **Deploy from a branch**, select `main` and `/(root)`, then save. 
+The site should publish at: https://darknight1028.github.io/invitation-card-rsvp/
+
 **Admin dashboard:** https://darknight1028.github.io/invitation-card-rsvp/admin.html
 
 Release Version: 1.5v

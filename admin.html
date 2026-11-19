@@ -18,6 +18,7 @@ h1{font:500 clamp(34px,6vw,48px)/1.05 "Cormorant Garamond",serif;color:var(--win
 .panel{padding:20px;max-width:460px;margin:0 auto 22px}
 label{display:block;font-size:12px;font-weight:700;color:var(--wine);margin:0 0 7px}
 input{width:100%;border:1px solid var(--line);border-radius:10px;background:#fffdf8;padding:13px 14px;color:var(--ink);font:14px "DM Sans",sans-serif;outline:none}
+.password-wrap{display:flex;gap:8px;align-items:stretch}.password-wrap input{flex:1;min-width:0}.toggle-password{border:1px solid var(--gold);border-radius:10px;padding:0 14px;background:#fff;color:var(--wine);font-size:12px;font-weight:700;white-space:nowrap}
 input:focus{border-color:var(--gold);box-shadow:0 0 0 3px #b8924f22}
 button{font:700 13px "DM Sans",sans-serif;cursor:pointer}
 .btn{border:1px solid var(--gold);border-radius:99px;padding:12px 22px;background:linear-gradient(135deg,#b8924f,#8f6d38);color:#fffaf0;box-shadow:0 6px 16px #8f6d382b}
@@ -53,7 +54,7 @@ button{font:700 13px "DM Sans",sans-serif;cursor:pointer}
 
 <section class="panel" id="loginPanel">
 <label for="key">Admin access key</label>
-<input id="key" type="password" autocomplete="current-password" placeholder="Masukkan admin key">
+<div class="password-wrap"><input id="key" type="password" autocomplete="current-password" placeholder="Masukkan admin key"><button class="toggle-password" type="button" id="togglePassword" aria-label="Papar kata laluan">Papar</button></div>
 <div class="actions"><button class="btn" id="login">Log masuk</button></div>
 <div class="msg" id="loginMsg" role="status">Masukkan admin key yang telah ditetapkan dalam Google Apps Script.</div>
 </section>
@@ -135,14 +136,21 @@ function removeRow(id,name){
   });
 }
 $("login").addEventListener("click",()=>{
-  const key=$("key").value.trim();
-  if(!key){message("loginMsg","Sila masukkan admin key.");return;}
+  const key=$("key").value;
+  if(!key.trim()){message("loginMsg","Sila masukkan admin key.");return;}
   adminKey=key;$("login").disabled=true;message("loginMsg","Mengesahkan akses...");
   jsonp({action:"list",key},data=>{
     $("login").disabled=false;
     if(data&&data.ok){$("loginPanel").classList.add("hidden");$("dashboard").classList.remove("hidden");$("key").value="";rows=Array.isArray(data.rows)?data.rows:[];render();}
-    else{adminKey="";message("loginMsg",data&&data.error==="auth"?"Admin key tidak sah.":"Sambungan gagal. Sila cuba lagi.");}
+    else{adminKey="";message("loginMsg",data&&data.error==="auth"?"Google mengesahkan sambungan, tetapi ADMIN_KEY tidak sepadan. Pastikan nilai dalam Script Properties tepat, termasuk huruf besar/kecil dan ruang.":data&&data.error==="network"?"Google Apps Script tidak memulangkan respons kepada halaman admin. Semak deployment Web App (Execute as: Me, Who has access: Anyone) dan cuba muat semula.":data&&data.error==="timeout"?"Google Apps Script mengambil masa terlalu lama untuk menjawab. Sila cuba lagi.":"Respons Google Apps Script tidak sah. Semak deployment Web App dan versi deployment.");}
   });
+});
+$("togglePassword").addEventListener("click",()=>{
+  const field=$("key");
+  const showing=field.type==="text";
+  field.type=showing?"password":"text";
+  $("togglePassword").textContent=showing?"Papar":"Sembunyi";
+  $("togglePassword").setAttribute("aria-label",showing?"Papar kata laluan":"Sembunyikan kata laluan");
 });
 $("refresh").addEventListener("click",load);
 $("logout").addEventListener("click",()=>{adminKey="";rows=[];$("dashboard").classList.add("hidden");$("loginPanel").classList.remove("hidden");message("loginMsg","Anda telah log keluar.");});

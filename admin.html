@@ -38,8 +38,27 @@ button{font:700 13px "DM Sans",sans-serif;cursor:pointer}
 .yes{background:#e8efdf;color:#52683d}.no{background:#f3e4dc;color:#8a5746}
 .delete{display:block;margin-top:9px;border:1px solid #d9b9a8;background:#fff8f4;color:#925e4b;border-radius:99px;padding:8px 12px;font-size:11px}
 .empty{text-align:center;padding:28px;color:var(--muted);background:#fffaf3;border:1px dashed var(--line);border-radius:14px;font:italic 18px "Cormorant Garamond",serif}
-.download-menu{position:relative;flex:0 0 auto}.download-menu summary{list-style:none;cursor:pointer;white-space:nowrap}.download-menu summary::-webkit-details-marker{display:none}.download-menu summary:after{content:" ▾";font-size:11px}.download-options{position:absolute;top:calc(100% + 7px);left:0;z-index:20;min-width:205px;padding:6px;background:#fffdf8;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 25px #6b4e2a22;display:grid;gap:4px}.download-options button{width:100%;text-align:left;border:0;border-radius:8px;padding:10px 12px;background:transparent;color:var(--wine);font-size:12px}.download-options button:hover{background:#f5ecde}
-@media print{body{background:#fff;padding:0}.wrap{box-shadow:none;border:0;min-height:0;padding:10px}.frame,.panel,.toolbar,.delete,.footer{display:none!important}#dashboard{display:block!important}.stats{margin:8px 0}.entry{break-inside:avoid;box-shadow:none}.entries{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.print-report{display:none}.download-menu{position:relative;flex:0 0 auto}.download-menu summary{list-style:none;cursor:pointer;white-space:nowrap}.download-menu summary::-webkit-details-marker{display:none}.download-menu summary:after{content:" ▾";font-size:11px}.download-options{position:absolute;top:calc(100% + 7px);left:0;z-index:20;min-width:205px;padding:6px;background:#fffdf8;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 25px #6b4e2a22;display:grid;gap:4px}.download-options button{width:100%;text-align:left;border:0;border-radius:8px;padding:10px 12px;background:transparent;color:var(--wine);font-size:12px}.download-options button:hover{background:#f5ecde}
+@media print{
+@page{size:A4;margin:16mm}
+body{background:#fff;padding:0;color:#332b21;font-size:10pt}
+.wrap{box-shadow:none;border:0;min-height:0;padding:0;max-width:none}
+.frame,.panel,.toolbar,.stats,.count,.entries,.footer,.orn{display:none!important}
+#dashboard{display:block!important}
+.print-report{display:block!important}
+.print-report h1{font:600 25pt "Cormorant Garamond",serif;text-align:center;color:#765a2d;margin:0}
+.print-report .print-sub{text-align:center;color:#76664f;font-size:9pt;letter-spacing:.12em;margin:5px 0 16px}
+.print-report .print-summary{display:flex;justify-content:center;gap:24px;border-top:1px solid #cdb88f;border-bottom:1px solid #cdb88f;padding:9px;margin-bottom:18px;font-size:9pt}
+.print-category{margin:0 0 18px;break-inside:avoid}
+.print-category h2{font:600 15pt "Cormorant Garamond",serif;color:#765a2d;border-bottom:1px solid #cdb88f;padding:0 0 5px;margin:0 0 8px}
+.print-category table{width:100%;border-collapse:collapse;font-size:9pt}
+.print-category th{background:#f2eadc;color:#5a472b;font-weight:700}
+.print-category th,.print-category td{border:1px solid #d8c9ad;padding:7px 8px;text-align:left}
+.print-category th:first-child,.print-category td:first-child{width:38px;text-align:center}
+.print-category th:last-child,.print-category td:last-child{width:145px}
+.print-category tr{break-inside:avoid}
+.print-footer{text-align:center;color:#8c7a62;font-size:8pt;margin-top:18px}
+}
 .footer{text-align:center;font-size:11px;color:#a8926d;margin:28px 0 0;letter-spacing:.08em}
 @media(min-width:700px){.entries{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:420px){.stats{gap:7px}.stat{padding:13px 5px}.stat b{font-size:29px}.entry{padding:13px}.name{font-size:18px}}
@@ -72,7 +91,7 @@ button{font:700 13px "DM Sans",sans-serif;cursor:pointer}
 <div class="actions" style="margin:0;align-items:center"><details class="download-menu"><summary class="secondary">Muat turun</summary><div class="download-options"><button type="button" id="downloadAll">Muat turun semua tetamu (CSV)</button><button type="button" id="downloadYes">Muat turun tetamu hadir (CSV)</button><button type="button" id="downloadNo">Muat turun tetamu tidak hadir (CSV)</button><button type="button" id="printList">Cetak / Simpan PDF</button></div></details><button class="secondary" id="refresh">Muat semula</button><button class="secondary" id="logout">Log keluar</button></div>
 </div>
 <p class="count" id="countLabel"></p>
-<div class="entries" id="entries"><div class="empty">Memuatkan senarai RSVP...</div></div>
+<div class="entries" id="entries"><div class="empty">Memuatkan senarai RSVP...</div></div>\n<div id="printReport" class="print-report"></div>
 </section>
 <p class="footer">SERUMPUN KASIH · SEJASMIN</p>
 </div>
@@ -146,6 +165,36 @@ function exportCsv(kind){
   a.href=url;a.download="SeJasmin-RSVP-"+kind+"-"+stamp+".csv";
   document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
 }
+function buildPrintReport(){
+  const host=$("printReport");
+  host.replaceChildren();
+  const title=document.createElement("h1");title.textContent="SeJasmin";
+  const subtitle=document.createElement("p");subtitle.className="print-sub";subtitle.textContent="SENARAI RSVP · MAJLIS HI-TEA";
+  const yes=rows.filter(r=>r.status==="Hadir");
+  const no=rows.filter(r=>r.status==="Tidak hadir");
+  const summary=document.createElement("div");summary.className="print-summary";
+  summary.textContent="Jumlah RSVP: "+rows.length+"     |     Hadir: "+yes.length+"     |     Tidak hadir: "+no.length;
+  host.append(title,subtitle,summary);
+  const makeCategory=(heading,data)=>{
+    const section=document.createElement("section");section.className="print-category";
+    const h=document.createElement("h2");h.textContent=heading+" ("+data.length+")";
+    const table=document.createElement("table");
+    const thead=document.createElement("thead"),headRow=document.createElement("tr");
+    ["Bil.","Nama Tetamu","Tarikh & Masa"].forEach(label=>{const th=document.createElement("th");th.textContent=label;headRow.appendChild(th);});
+    thead.appendChild(headRow);table.appendChild(thead);
+    const tbody=document.createElement("tbody");
+    (data.length?data:[null]).forEach((r,i)=>{
+      const tr=document.createElement("tr");
+      [r?String(i+1):"—",r?r.name:"Tiada rekod",r?(r.at?new Date(r.at).toLocaleString("ms-MY"):"—"):"—"].forEach(value=>{const td=document.createElement("td");td.textContent=value;tr.appendChild(td);});
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);section.append(h,table);host.appendChild(section);
+  };
+  makeCategory("SENARAI HADIR",yes);
+  makeCategory("SENARAI TIDAK HADIR",no);
+  const footer=document.createElement("p");footer.className="print-footer";footer.textContent="SERUMPUN KASIH · SEJASMIN";
+  host.appendChild(footer);
+}
 function removeRow(id,name){
   if(!confirm("Padam RSVP untuk "+name+"? Tindakan ini tidak boleh dibatalkan."))return;
   jsonp({action:"delete",key:adminKey,id},data=>{
@@ -173,7 +222,7 @@ $("togglePassword").addEventListener("click",()=>{
 $("downloadAll").addEventListener("click",()=>exportCsv("all"));
 $("downloadYes").addEventListener("click",()=>exportCsv("yes"));
 $("downloadNo").addEventListener("click",()=>exportCsv("no"));
-$("printList").addEventListener("click",()=>window.print());
+$("printList").addEventListener("click",()=>{buildPrintReport();$("printList").closest("details").open=false;window.print();});
 $("refresh").addEventListener("click",load);
 $("logout").addEventListener("click",()=>{adminKey="";rows=[];$("dashboard").classList.add("hidden");$("loginPanel").classList.remove("hidden");message("loginMsg","Anda telah log keluar.");});
 $("search").addEventListener("input",render);
